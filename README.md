@@ -20,6 +20,5 @@ Depending on the type of analyses this might be time intensive (ROI results can 
 ## Group-level analyses: 
 
 All group-level results and the statistics in the paper can be reproduced with the code provided in this repository.  
-You first need to download and unzip the data from OSF (Link: https://osf.io/vsc6y/) to a folder in the cloned github directory.
-For this, download the zipped data from the MEG data and fMRI data components on OSF separately. 
-Then run the scripts "unzip_move_fmri_data.sh" and "unzip_move_meg_data.sh" to unzip and move the data to the following folder structure: 
+You first need to download and unzip the data from OSF (Link: ) to a folder in the cloned github directory.
+For this, download the zipped data from OSF. 
