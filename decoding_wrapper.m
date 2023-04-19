@@ -9,11 +9,13 @@ clc
 %setup paths
 
 path = pwd;
-figure_path = fullfile(path,'figures');
-betas_path = '/Users/johannessinger/Documents/cloud_Berlin/Projekte/dfg/WP1/paper/data/betas';
-behav_path = '/Users/johannessinger/Documents/cloud_Berlin/Projekte/dfg/WP1/paper/data';
-results_path = '/Users/johannessinger/Documents/cloud_Berlin/Projekte/dfg/WP1/paper/results';
-roi_path = '/Users/johannessinger/Documents/cloud_Berlin/Projekte/dfg/WP1/paper/data/roi';
+parent_dir = fileparts(fileparts(pwd));
+figure_path = fullfile(parent_dir,'figures');
+betas_path = fullfile(parent_dir,'data','interim_betas');
+df_path = fullfile('data','deformation_field');
+behav_path = fullfile(parent_dir,'data');
+results_path = fullfile(parent_dir,'results');
+roi_path = fullfile(parent_dir,'data','roi');
 
 % get all subject names
 subs = dir(fullfile(betas_path,'*sub*'));
@@ -62,10 +64,13 @@ for sub_idx = 1:length(subs)
     % select the current subject
     sub = subs{sub_idx};
     
+    % set rng to fixed number for reproducibility 
+    rng(96+sub_idx);
+    
     cfg = [];
-    cfg.analysis = 'roi';
-    cfg.n_perm = 2; %how many times should the split-half averaging and decoding be repeated
-    avg_size = 2 ; % how many betas to average into one beta
+    cfg.analysis = 'searchlight';
+    cfg.n_perm = 100; %how many times should the split-half averaging and decoding be repeated
+    avg_size = 2; % how many betas to average into one beta
     condition_names = cell(1,60);
     for i=1:60
         condition_names(i) = {['Image_', num2str(i)]};
@@ -73,7 +78,7 @@ for sub_idx = 1:length(subs)
     beta_dir = fullfile(betas_path,sub);
     beta_avg_dir = fullfile(betas_path,sub,'avg');
     
-    out_dir = fullfile(results_path,sub(end-4:end),'decoding','manmade_natural',cfg.analysis);
+    out_dir = fullfile(results_path,sub(1:5),'decoding','manmade_natural',cfg.analysis);
     roi_dir = fullfile(roi_path,sub(end-4:end));
     if strcmpi(cfg.analysis, 'searchlight')
         cfg.files.mask = {fullfile(beta_dir,'mask.nii')};
@@ -85,8 +90,27 @@ for sub_idx = 1:length(subs)
     
     if strcmpi(cfg.analysis,'searchlight')
         
+        % combine the results from different permutations
         combine_decoding_results_splithalf(out_dir,cfg.n_perm);
+        % run the distance-to-hyperplane analysis
         dth_analysis(behav_path,out_dir);
+        % normalize the decoding accuracy and dth correlation maps
+        
+        % select files to normalize and smooth here
+        fnames = cellstr(spm_select('fplistrec',fullfile(out_dir),['^[res|dth].*nii$'])); 
+        
+        spm_jobman('initcfg')
+        matlabbatch = [];
+        %normalize
+        normparams_path = spm_select('fplist',fullfile(df_path),['^y_struct',num2str(sub_idx,'%02i'),'.*\.(nii|img)$']); %path to forward transformation file
+        matlabbatch{1}.spm.spatial.normalise.write.subj.def = {normparams_path};
+        matlabbatch{1}.spm.spatial.normalise.write.subj.resample = fnames;
+        matlabbatch{1}.spm.spatial.normalise.write.woptions.bb = [NaN NaN NaN;NaN NaN NaN];
+        matlabbatch{1}.spm.spatial.normalise.write.woptions.vox = [2 2 2];
+        matlabbatch{1}.spm.spatial.normalise.write.woptions.interp = 1;
+       
+        spm_jobman('run',matlabbatch)
+        
         
     elseif contains(cfg.analysis,'roi')
         combine_decoding_results_splithalf_roi(out_dir,cfg.n_perm);

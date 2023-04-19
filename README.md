@@ -12,10 +12,14 @@ The code was tested on Mac and Matlab2022a (with older Matlab versions there mig
 
 ## First-level analyses:
 
-We provide beta maps for every subject to demonstrate how the first-level results are computed.  
+All first-level results can be reproduced with the decoding_wrapper.m script. 
 
-To run the decoding (ROI or searchlight) run decoding_wrapper.m and specify in the script which analysis you want to run (ROI or searchlight).
+First-level analyses are based on the beta maps for each participant. These beta maps are openly accesible via OSF (Link:). You first need to download these beta maps from OSF and then organize them with the organize_beta_maps.sh script. 
+
+To run the decoding (ROI or searchlight) specify in the decoding_wrapper.m script which analysis you want to run (ROI or searchlight) and then run the script.
 Depending on the type of analyses this might be time intensive (ROI results can be obtained in around 1 hour but searchlight analyses can take up to 3 to 4 hours for a single subject). 
+
+If you select searchlight analysis, then normalization of the searchlight maps to the MNI template will be carried out as well. 
 
 ## Group-level analyses: 
 
