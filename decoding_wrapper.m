@@ -3,38 +3,34 @@
 % possible analysis steps are:
 % Manmade/Natural Decoding - ROI and searchlight
 
-clear all
-clc
+% clear all
+% clc
 
 %setup paths
 
 path = pwd;
-parent_dir = fileparts(fileparts(pwd));
+parent_dir = fileparts(pwd);
 figure_path = fullfile(parent_dir,'figures');
-betas_path = fullfile(parent_dir,'data','interim_betas');
-df_path = fullfile('data','deformation_field');
-behav_path = fullfile(parent_dir,'data');
+betas_path = fullfile(parent_dir,'interim_betas');
+df_path = fullfile(parent_dir,'deformation_field');
+behav_path = fullfile(parent_dir,'behav');
 results_path = fullfile(parent_dir,'results');
-roi_path = fullfile(parent_dir,'data','roi');
+roi_path = fullfile(parent_dir,'roi');
 
 % get all subject names
 subs = dir(fullfile(betas_path,'*sub*'));
 subs = {subs.name}';
 
-% add utils
-
-addpath(fullfile(path,'utils'));
-
-% add first level functions
-
-addpath(fullfile(path,'first_level','fmri'));
-
 % setup the decoding toolbox
 try
     decoding_defaults;
 catch
-    tdt_path = input('The Decoding Toolbox seems to be not on your path. Please enter the path to your TDT version:\n','s');
+    tdt_path = '/scratch/singej96/dfg_projekt/WP1/analysis_tools/tdt_3.999/decoding_toolbox';
     addpath(tdt_path);
+    % copy transres function to tdt directory, if not already there 
+    if ~exist(fullfile(tdt_path,'transform_results','transres_mean_decision_values.m'))
+        movefile('transres_mean_decision_values.m',fullfile(tdt_path,'transform_results'));
+    end 
     decoding_defaults;
 end
 
@@ -43,7 +39,7 @@ try
     spm;
     close all
 catch
-    spm_path = input('SPM seems to be not on your path. Please enter the path to your SPM version:\n','s');
+    spm_path = '/scratch/singej96/dfg_projekt/WP1/analysis_tools/spm12';
     addpath(spm_path);
 end
 
@@ -53,13 +49,9 @@ end
 set(0, 'defaultaxesfontsize', 14, 'defaultaxesfontweight', 'bold', ...
     'defaultlinelinewidth', 3, 'DefaultAxesFontName', 'Helvetica','DefaultTextFontName', 'Helvetica')
 
-% get colormap
-%cmap = colormap('redblueTecplot');
-close all
-
 %% manmade vs. natural decoding - ROI or searchlight
 
-for sub_idx = 1:length(subs)
+for sub_idx = subjects
     
     % select the current subject
     sub = subs{sub_idx};
@@ -79,7 +71,7 @@ for sub_idx = 1:length(subs)
     beta_avg_dir = fullfile(betas_path,sub,'avg');
     
     out_dir = fullfile(results_path,sub(1:5),'decoding','manmade_natural',cfg.analysis);
-    roi_dir = fullfile(roi_path,sub(end-4:end));
+    roi_dir = fullfile(roi_path,[sub(1:5),'_rois']);
     if strcmpi(cfg.analysis, 'searchlight')
         cfg.files.mask = {fullfile(beta_dir,'mask.nii')};
     elseif strcmpi(cfg.analysis, 'roi')
@@ -102,7 +94,7 @@ for sub_idx = 1:length(subs)
         spm_jobman('initcfg')
         matlabbatch = [];
         %normalize
-        normparams_path = spm_select('fplist',fullfile(df_path),['^y_struct',num2str(sub_idx,'%02i'),'.*\.(nii|img)$']); %path to forward transformation file
+        normparams_path = spm_select('fplist',fullfile(df_path,['sub',num2str(sub_idx,'%02i'),'_df']),['^y_struct',num2str(sub_idx,'%02i'),'.*\.(nii|img)$']); %path to forward transformation file
         matlabbatch{1}.spm.spatial.normalise.write.subj.def = {normparams_path};
         matlabbatch{1}.spm.spatial.normalise.write.subj.resample = fnames;
         matlabbatch{1}.spm.spatial.normalise.write.woptions.bb = [NaN NaN NaN;NaN NaN NaN];

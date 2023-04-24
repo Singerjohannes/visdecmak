@@ -1,4 +1,4 @@
-%% this function averages the beta images for later RSA 
+%% this function averages the beta images for later decoding
 function n_betas = avg_betas_splithalf(labelnames, avg_size,beta_dir,out_dir,cfg)
 
 % check if avg dir already exists 

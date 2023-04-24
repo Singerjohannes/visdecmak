@@ -7,15 +7,18 @@ load(fullfile(behav_path,'RT_all_subjects_5_35_categorization.mat'), 'RTs')
 
 mean_RTs = nanmean(RTs,1); 
 
+load(fullfile(behav_path,'RT_all_subjects_5_35_fixation.mat'), 'RTs')
+
+mean_RTs_distraction = nanmean(RTs,1);
+
 for i = 1:length(results.mean_decision_values.output)
     
     these_dec_vals = results.mean_decision_values.output{i}; %reshape(results.mean_decision_values.output{i},2,60);
     if length(these_dec_vals) > 60
         these_dec_vals = mean(reshape(these_dec_vals,length(these_dec_vals)/60,60))';
     end 
-    dth_corr(i) = corr(these_dec_vals,mean_RTs', 'Type','Pearson'); 
-    dth_corr_only_manmade(i) = corr(these_dec_vals(1:30),mean_RTs(1:30)', 'Type','Pearson');
-    dth_corr_only_natural(i) = corr(these_dec_vals(31:end),mean_RTs(31:end)', 'Type','Pearson');
+    dth_corr(i) = corr(these_dec_vals,mean_RTs', 'Type','Pearson');
+    dth_corr_distraction(i) = corr(these_dec_vals,mean_RTs_distraction', 'Type','Pearson');
 
 end 
 
@@ -34,10 +37,7 @@ resultsvol_hdr.descrip = sprintf('Distance to hyperplane correlation with mean s
 resultsvol = backgroundvalue * ones(resultsvol_hdr.dim(1:3)); % prepare results volume with background value (default: 0)
 resultsvol(results.mask_index) = dth_corr;
 spm_write_vol(resultsvol_hdr,resultsvol);
-resultsvol_hdr.fname = fullfile(res_path,'dth_corr_only_manmade.nii');
-resultsvol(results.mask_index) = dth_corr_only_manmade;
-spm_write_vol(resultsvol_hdr,resultsvol);
-resultsvol_hdr.fname = fullfile(res_path,'dth_corr_only_natural.nii');
-resultsvol(results.mask_index) = dth_corr_only_natural;
+resultsvol_hdr.fname = fullfile(res_path,'dth_corr_distraction.nii');
+resultsvol(results.mask_index) = dth_corr_distraction;
 spm_write_vol(resultsvol_hdr,resultsvol);
 end 
