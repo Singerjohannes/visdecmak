@@ -63,7 +63,7 @@ decoding_roi = [];
 %specify results name
 res_name = 'manmade_natural';
 
-for i_sub = 1:length(fmri_subs)-1
+for i_sub = 1:length(fmri_subs)
     
     sub_id = fmri_subs{i_sub};
     
@@ -144,7 +144,7 @@ distraction_RTs = nanmean(RTs,1);%.*[ones(1,30), ones(1,30)*-1];
 %specify results name
 res_name = 'manmade_natural';
 
-for i_sub = 1:length(fmri_subs)-1
+for i_sub = 1:length(fmri_subs)
     
     sub_id = fmri_subs{i_sub};
     if any(ismember(excluded_subjects, sub_id)), continue, end 
@@ -197,7 +197,7 @@ xticklabels([roi_names])
 %yticks([0:-0.02:-0.12])
 xlabel('ROI')
 ylabel('Pearson R')
-title('Distance To Hyperplane Correlation - fMRI')
+title('Distance To Hyperplane Correlation')
 
 hold on
 % Find the number of groups and the number of bars in each group
@@ -222,14 +222,85 @@ for roi = 1:3
     scatter(x(roi) * ones(length(dth_corr), 1), dth_corr(:,roi), 10, [0.6 0.6 0.6], 'filled','MarkerEdgeColor',[0.6 0.6 0.6]);
 end
 
-% for i = 1:size(dth_corr,2)
-%     
-%     plot([x(i)-0.2 x(i)+0.2], [combined_rel(i) combined_rel(i)],'Color',cmap(colorspace(i),:) )
-% end 
-
-%legend({'Photos'; 'Drawings'; 'Sketches'} ,'Location','northeast')
-
 print(fullfile(out_dir,['dth_corr_ROI.svg']), ...
              '-dsvg', '-r600')
  
+% do the same for the distraction DTH-correlations
+all_accs = mean(dth_corr_distraction(:,1:3))';
+decoding_se = [];
+for roi = 1:length(roi_names)
+    decoding_se(roi,:) = [std(dth_corr_distraction(:,roi))/sqrt(length(dth_corr_distraction))];
+end
+           
+figure
+h = bar(all_accs, 'grouped','FaceColor', 'flat');
+h.CData= [[0 0 0];cmap(256,:);cmap(200,:)];
+xticklabels([roi_names])
+%yticks([0:-0.02:-0.12])
+xlabel('ROI')
+ylabel('Pearson R')
+title('Distance To Hyperplane Correlation Distraction')
+
+hold on
+% Find the number of groups and the number of bars in each group
+ngroups = size(all_accs, 1);
+nbars = size(all_accs, 2);
+% Calculate the width for each bar group
+
+groupwidth = min(0.8, nbars/(nbars + 1.5));
+
+% Set the position of each error bar in the centre of the main bar
+% Based on barweb.m by Bolu Ajiboye from MATLAB File Exchange
+for i = 1:nbars
+    % Calculate center of each bar
+    x = (1:ngroups) - groupwidth/2 + (2*i-1) * groupwidth / (2*nbars);
+    errorbar(x, all_accs(:,i), decoding_se(:,i), 'k', 'linestyle', 'none','linewidth',2);
+end
+
+
+% loop through each roi
+for roi = 1:3
+    % plot individual data points for each roi
+    scatter(x(roi) * ones(length(dth_corr), 1), dth_corr_distraction(:,roi), 10, [0.6 0.6 0.6], 'filled','MarkerEdgeColor',[0.6 0.6 0.6]);
+end
+
+print(fullfile(out_dir,['dth_corr_distraction_ROI.svg']), ...
+             '-dsvg', '-r600')
  
+%% compute statistics
+
+% set rng 
+rng(96)
+
+% set stats defaults 
+nperm = 10000;
+cluster_th = 0.001;
+significance_th = 0.05;
+tail = 'right';
+
+sig_decoding_EVC = permutation_1sample_alld (decoding_roi(:,1), nperm, cluster_th, significance_th, tail);
+
+sig_decoding_LOC = permutation_1sample_alld (decoding_roi(:,2), nperm, cluster_th, significance_th, tail);
+
+sig_decoding_PPA = permutation_1sample_alld (decoding_roi(:,3), nperm, cluster_th, significance_th, tail);
+
+[~,~,~,adj_p_decoding] = fdr_bh([sig_decoding_EVC sig_decoding_LOC sig_decoding_PPA]);
+
+tail = 'both';
+
+sig_dth_corr_EVC = permutation_1sample_alld(dth_corr(:,1), nperm, cluster_th, significance_th, tail);
+
+sig_dth_corr_LOC = permutation_1sample_alld(dth_corr(:,2), nperm, cluster_th, significance_th, tail);
+
+sig_dth_corr_PPA = permutation_1sample_alld(dth_corr(:,3), nperm, cluster_th, significance_th, tail);
+
+[~,~,~,adj_p_dth_corr] = fdr_bh([sig_dth_corr_EVC sig_dth_corr_LOC sig_dth_corr_PPA]);
+
+sig_dth_corr_distraction_EVC = permutation_1sample_alld(dth_corr_distraction(:,1), nperm, cluster_th, significance_th, tail);
+
+sig_dth_corr_distraction_LOC = permutation_1sample_alld(dth_corr_distraction(:,2), nperm, cluster_th, significance_th, tail);
+
+sig_dth_corr_distraction_PPA = permutation_1sample_alld(dth_corr_distraction(:,3), nperm, cluster_th, significance_th, tail);
+
+[~,~,~,adj_p_dth_corr_distraction] = fdr_bh([sig_dth_corr_distraction_EVC sig_dth_corr_distraction_LOC sig_dth_corr_distraction_PPA]);
+

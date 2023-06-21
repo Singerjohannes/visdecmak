@@ -64,7 +64,7 @@ mean_RTs = nanmean(RTs,1);
 %specify results name
 res_name = 'manmade_natural';
 
-for i_sub = 1:length(fmri_subs)-1
+for i_sub = 1:length(fmri_subs)
     
     sub_id = fmri_subs{i_sub};
     if any(ismember(excluded_subjects, sub_id)), continue, end 
@@ -144,7 +144,7 @@ for idx = 1:length(dist_filenames)
     end 
 end 
 
-order_idx = [2 3 4 5 6 1]; % ordered values from low to high level features
+order_idx = [2 3 5 6 4 1]; % ordered values from low to high level features
 alexnet_distances =alexnet_distances(:,order_idx);
 
 % little check that the order idxs are correct 
@@ -265,7 +265,7 @@ end
 end
 disp('done.')
 
-%% shared variance for each model independently - VGG16
+%% shared variance for each model independently - DenseNet
 
 addpath('/Users/johannessinger/scratch/dfg_projekt/WP1/analysis/utils')
 
@@ -309,7 +309,7 @@ for roi = 1:size(shared_var,2)
     for layer = 1:size(shared_var,3)
         for model = 1:size(shared_var,4)
 
-        sig_shared_var_diff(roi,layer,model) = permutation_1sample_alld_less_mem(shared_var(:,roi,layer,model), nperm, cluster_th, significance_th, tail);
+        sig_shared_var_diff(roi,layer,model) = permutation_1sample_alld(shared_var(:,roi,layer,model), nperm, cluster_th, significance_th, tail);
     end
     end 
 end
@@ -376,10 +376,13 @@ for model = 1:size(shared_var,4)
     err_start = 0;
     err_end = abs(boot_shared_var(1,model).peak.confidence95(2)-boot_shared_var(1,model).peak.confidence95(1));
     if model ==1, color = 'black'; elseif model >1 color = cmap(cmap_idx(model-1),:);end 
-    %errorbar(x, y, err_start, err_end, 'horizontal','Color',color, 'LineStyle', 'none', 'Marker', 'none', 'LineWidth', 3);
+    errorbar(x, y, err_start, err_end, 'horizontal','Color',color, 'LineStyle', 'none', 'Marker', 'none', 'LineWidth', 3);
 
+    % add observed peak value as a dot
+    obs_peak_val = boot_shared_var(1,model).peak.orig;
+    plot(obs_peak_val, y, 'o', 'MarkerFaceColor', color, 'MarkerEdgeColor', 'none', 'MarkerSize', 8)
 end 
-ylim([-0.5 5])
+ylim([-0.5 6])
 xlim([1 6])
 xticks([1 3.5 6])
 xticklabels({'Early';'Intermediate';'High'})
@@ -424,17 +427,20 @@ for model = 1:size(shared_var,4)
     end 
         % plot peak CI 
     x = boot_shared_var(2,model).peak.confidence95(1);
-    y = 4-0.2*model;
+    y = 5.4-0.2*model;
     err_start = 0;
     err_end = abs(boot_shared_var(2,model).peak.confidence95(2)-boot_shared_var(2,model).peak.confidence95(1));
     if model ==1, color = 'black'; elseif model >1 color = cmap(cmap_idx(model-1),:);end 
-    %errorbar(x, y, err_start, err_end, 'horizontal','Color',color, 'LineStyle', 'none', 'Marker', 'none', 'LineWidth', 3);
+    errorbar(x, y, err_start, err_end, 'horizontal','Color',color, 'LineStyle', 'none', 'Marker', 'none', 'LineWidth', 3);
 
+    % add observed peak value as a dot
+    obs_peak_val = boot_shared_var(2,model).peak.orig;
+    plot(obs_peak_val, y, 'o', 'MarkerFaceColor', color, 'MarkerEdgeColor', 'none', 'MarkerSize', 8)
 end 
-ylim([-0.5 5])
+ylim([-0.5 6])
 xticks([1 3.5 6])
 xticklabels({'Early';'Intermediate';'High'})
-legend(this_line,'ResNet18','ResNet50','AlexNet', 'DenseNet')
+%legend(this_line,'ResNet18','ResNet50','AlexNet', 'DenseNet')
 title('LOC')
 ylabel('Shared Variance (%)')
 xlabel('Model layer')
@@ -481,8 +487,11 @@ for model = 1:size(shared_var,4)
     if model ==1, color = 'black'; elseif model >1 color = cmap(cmap_idx(model-1),:);end 
     %errorbar(x, y, err_start, err_end, 'horizontal','Color',color, 'LineStyle', 'none', 'Marker', 'none', 'LineWidth', 3);
 
+    % add observed peak value as a dot
+    obs_peak_val = boot_shared_var(3,model).peak.orig;
+    plot(obs_peak_val, y, 'o', 'MarkerFaceColor', color, 'MarkerEdgeColor', 'none', 'MarkerSize', 8)
 end 
-ylim([-0.5 5])
+ylim([-0.5 6])
 xticks([1 3.5 6])
 xticklabels({'Early';'Intermediate';'High'})
 legend(this_line,'ResNet18','ResNet50','AlexNet', 'DenseNet')

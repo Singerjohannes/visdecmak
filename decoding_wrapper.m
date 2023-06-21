@@ -57,10 +57,10 @@ for sub_idx = subjects
     sub = subs{sub_idx};
     
     % set rng to fixed number for reproducibility 
-    rng(96+sub_idx);
+    rng(sub_idx);
     
     cfg = [];
-    cfg.analysis = 'searchlight';
+    cfg.analysis = 'roi';
     cfg.n_perm = 100; %how many times should the split-half averaging and decoding be repeated
     avg_size = 2; % how many betas to average into one beta
     condition_names = cell(1,60);

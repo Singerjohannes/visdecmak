@@ -88,8 +88,7 @@ for sub_no = 1:length(fmri_subs)
     end
 end
 
-% find voxels where all subjects have values and compute stats only for
-% these voxels
+% find for each voxel how many subjects have values 
 
 sz = size(decoding_maps);
 stats_mask = zeros(sz(1),sz(2),sz(3));
@@ -99,9 +98,14 @@ for vox = 1:(sz(1)*sz(2)*sz(3))
     
    [idx1,idx2,idx3] = ind2sub([sz(1),sz(2),sz(3)],vox);
    
-   stats_mask(vox) = ~any(decoding_maps(idx1,idx2,idx3,:) ==0);
+   stats_mask(vox) = sum(decoding_maps(idx1,idx2,idx3,:) ~=0);
    
 end
+
+% take only those voxels for which more than 70% of the subjects have
+% values
+cutoff = ceil(size(decoding_maps,4)*0.7);
+stats_mask = stats_mask>cutoff; 
 
 % now mask the group results with the stats mask for running the stats 
 
@@ -139,7 +143,7 @@ hdr = spm_vol(fmri_fname); %  this should be an image with the same dimensionali
 hdr = rmfield(hdr, 'dt'); % get rid of scaling factors from the original image
 hdr.descrip = sprintf('Searchlight decoding masked');
 hdr = rmfield(hdr, 'n');
-hdr.fname = fullfile(out_dir,[res_name,'_accuracy_minus_chance_masked.nii']);
+hdr.fname = fullfile(out_dir,[res_name,'_accuracy_minus_chance_masked_max.nii']);
 mean_vol = mean(decoding_maps,4);
 spm_write_vol(hdr, mean_vol.*sig_searchlight_max);
 
@@ -177,22 +181,6 @@ for sub_no = 1:length(fmri_subs)
     end
 end
 
-
-% find voxels where all subjects have values and compute stats only for
-% these voxels
-
-sz = size(decoding_maps);
-stats_mask = zeros(sz(1),sz(2),sz(3));
-
-for vox = 1:(sz(1)*sz(2)*sz(3))
-    
-    
-   [idx1,idx2,idx3] = ind2sub([sz(1),sz(2),sz(3)],vox);
-   
-   stats_mask(vox) = ~any(decoding_maps(idx1,idx2,idx3,:) ==0);
-   
-end
-
 % now mask the group results with the stats mask for running the stats 
 decoding_maps_masked = [];
 for sub= 1:size(decoding_maps,4)
@@ -218,8 +206,10 @@ hdr = spm_vol(fmri_fname); %  this should be an image with the same dimensionali
 hdr = rmfield(hdr, 'dt'); % get rid of scaling factors from the original image
 hdr.descrip = sprintf('Distance-to-hyperplane correlation masked');
 hdr = rmfield(hdr, 'n');
-hdr.fname = fullfile(out_dir,[res_name,'_dth_corr_masked.nii']);
-spm_write_vol(hdr, mean_vol.*sig_searchlight_weigh);
+
+hdr.fname = fullfile(out_dir,[res_name,'_dth_corr_masked_max.nii']);
+mean_vol = mean(decoding_maps,4);
+spm_write_vol(hdr, mean_vol.*sig_searchlight_max);
 
 %% dth correlation with distraction RTs + statistics 
 
@@ -254,22 +244,6 @@ for sub_no = 1:length(fmri_subs)
     end
 end
 
-
-% find voxels where all subjects have values and compute stats only for
-% these voxels
-
-sz = size(decoding_maps);
-stats_mask = zeros(sz(1),sz(2),sz(3));
-
-for vox = 1:(sz(1)*sz(2)*sz(3))
-    
-    
-   [idx1,idx2,idx3] = ind2sub([sz(1),sz(2),sz(3)],vox);
-   
-   stats_mask(vox) = ~any(decoding_maps(idx1,idx2,idx3,:) ==0);
-   
-end
-
 % now mask the group results with the stats mask for running the stats 
 decoding_maps_masked = [];
 for sub= 1:size(decoding_maps,4)
@@ -295,5 +269,6 @@ hdr = spm_vol(fmri_fname); %  this should be an image with the same dimensionali
 hdr = rmfield(hdr, 'dt'); % get rid of scaling factors from the original image
 hdr.descrip = sprintf('Distance-to-hyperplane correlation masked');
 hdr = rmfield(hdr, 'n');
-hdr.fname = fullfile(out_dir,[res_name,'_dth_corr_distraction_masked.nii']);
-spm_write_vol(hdr, mean_vol.*sig_searchlight_weigh);
+hdr.fname = fullfile(out_dir,[res_name,'_dth_corr_distraction_masked_max.nii']);
+mean_vol = mean(decoding_maps,4);
+spm_write_vol(hdr, mean_vol.*sig_searchlight_max);
