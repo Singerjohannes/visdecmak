@@ -11,7 +11,7 @@
 path = pwd;
 parent_dir = fileparts(pwd);
 figure_path = fullfile(parent_dir,'figures');
-betas_path = fullfile(parent_dir,'interim_betas');
+betas_path = fullfile(parent_dir,'betas');
 df_path = fullfile(parent_dir,'deformation_field');
 behav_path = fullfile(parent_dir,'behav');
 results_path = fullfile(parent_dir,'results');
