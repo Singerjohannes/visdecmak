@@ -14,7 +14,7 @@ The code was tested on Mac and Matlab2021a (with older Matlab versions there mig
 
 All first-level results can be reproduced with the decoding_wrapper.m script. 
 
-First-level analyses are based on the beta maps for each participant. These beta maps, the subject-specific ROI masks and the subject-specific deformation fields (for normalizing the results to the MNI template) are openly accesible via OSF (Link:). You first need to download the fMRI data component from OSF and then unzip and move them with the organize_fMRI_data.sh script. 
+First-level analyses are based on the beta maps for each participant. These beta maps, the subject-specific ROI masks and the subject-specific deformation fields (for normalizing the results to the MNI template) are openly accesible via OSF (Link:). You first need to download the fMRI data component from OSF and then unzip and move them with the organize_fMRI_data.sh script (see the wiki of the OSF project page for more detailed intstructions). 
 
 To run the decoding (ROI or searchlight) specify in the decoding_wrapper.m script which analysis you want to run (ROI or searchlight - see instructions in the decoding_wrapper.m script) and then run the script.
 Depending on the type of analyses this might be time intensive (ROI results can be obtained in around 1 hour but searchlight analyses can take up to 3 to 4 hours for a single subject). 
@@ -23,7 +23,7 @@ Depending on the type of analyses this might be time intensive (ROI results can 
 
 All group-level results and the statistics in the paper can be reproduced with the code provided in this repository.  
 
-If you have not computed the first-level results with the steps described above you need to download the data from the first-level results component on OSF and unzip and move the data with the organize_first_level_results.sh script. 
+If you have not computed the first-level results with the steps described above you need to download the data from the first-level results component on OSF and unzip and move the data with the organize_first_level_results.sh script (see the wiki of the OSF project page for more detailed intstructions). 
 
 After you have downloaded and unzipped the files you can use group_roi_wrapper.m, group_modelling_wrapper.m and group_searchlight_wrapper.m to compute the group-level statistics for all the analyses in the paper. 
 
