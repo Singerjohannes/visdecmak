@@ -42,3 +42,18 @@ if [ -f "$zip_file_path" ]; then
 else
     echo "Error: The specified zip file does not exist."
 fi
+
+
+# Prompt the user for the path to the zip file
+read -p "Enter the path to the zip file downloaded from the OSF behavior component: " zip_file_path
+
+# Check if the zip file exists
+if [ -f "$zip_file_path" ]; then
+    # Unzip the file to the destination path
+    unzip "$zip_file_path" -d "$dest_path/behav"
+    
+    echo "Unzipped successfully!"
+
+else
+    echo "Error: The specified zip file does not exist."
+fi

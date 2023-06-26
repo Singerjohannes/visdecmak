@@ -9,7 +9,7 @@ clear all
 
 %setup paths 
 
-path = fileparts(pwd);
+path = pwd;
 figure_path = fullfile(path,'figures');
 % create figure path
 if ~isdir(figure_path); mkdir(figure_path); end 
@@ -130,7 +130,7 @@ print(fullfile(out_dir, ['manmade_natural_decoding_ROI.svg']), ...
          
 %% Distance-to-hyperplane correlation 
 
-dth_corr = [];
+dth_corr = [];       
 
 % load behavior 
 load(fullfile(behav_path,'RT_all_subjects_5_35_categorization.mat'), 'RTs')

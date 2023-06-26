@@ -6,7 +6,7 @@ clc
 
 %setup paths 
 
-path = fileparts(pwd);
+path = pwd;
 figure_path = fullfile(path,'figures');
 % create figure path
 if ~isdir(figure_path); mkdir(figure_path); end 
@@ -305,7 +305,7 @@ cluster_th = 0.001;
 significance_th = 0.05;
 tail = 'both';
 
-for roi = 1:size(shared_var,2)
+for roi = 1:size(shared_var,2)-1 % calculate stats only for EVC and LOC
     for layer = 1:size(shared_var,3)
         for model = 1:size(shared_var,4)
 
@@ -327,7 +327,7 @@ nboot = 100000;
 % set rng to a fixed number 
 rng(96);
 
-for roi = 1:size(shared_var,2)
+for roi = 1:size(shared_var,2)-1
         for model = 1:size(shared_var,4)
 
         boot_shared_var(roi,model) = bootstrap_fixed_1D(squeeze(shared_var(:,roi,:,model)), [1:6],nboot,statsInfo);
@@ -447,60 +447,3 @@ xlabel('Model layer')
 
 print(fullfile(out_dir, ['dth_shared_variance_LOC.svg']), ...
              '-dsvg', '-r600')
-
-clear this_line
-fig = figure;
-options = [];
-options.handle = fig;
-options.x_axis = [1:6];
-options.error = 'sem';
-options.color_area = 'black';%[128 193 219]./255;    % Blue theme
-options.color_line = [17 17 17]./255;
-options.alpha      = 0.5;
-options.line_width = 3;
-this_line(1) = plot_areaerrorbar(squeeze(shared_var(:,3,:,1))*100,options);
-hold on
-options.color_area = cmap(ceil(256),:);%rgb('DarkSeaGreen');
-options.color_line = cmap(ceil(256),:);%rgb('Green');
-this_line(2) = plot_areaerrorbar(squeeze(shared_var(:,3,:,2))*100,options);
-options.color_area = cmap(ceil(200),:);%rgb('Violet');    % Orange theme
-options.color_line = cmap(ceil(200),:)%rgb('Purple');
-this_line(3) = plot_areaerrorbar(squeeze(shared_var(:,3,:,3))*100,options);
-options.color_area = cmap(ceil(20),:);%rgb('Violet');    % Orange theme
-options.color_line = cmap(ceil(20),:)%rgb('Purple');
-this_line(4) = plot_areaerrorbar(squeeze(shared_var(:,3,:,4))*100,options);
-for model = 1:size(shared_var,4)
-    % plot stats 
-    this_sig = adj_p_shared_var_diff(3,:,model);
-    this_sig(this_sig>0.05) = NaN;
-    this_sig(this_sig<0.05) = 1; 
-    if model == 1 
-        plot(options.x_axis,this_sig*-0.12*model,'.','Color','black','MarkerSize',15);
-    elseif model >1
-        plot(options.x_axis,this_sig*-0.12*model,'.','Color',cmap(cmap_idx(model-1),:),'MarkerSize',15);
-    end 
-        % plot peak CI 
-    x = boot_shared_var(2,model).peak.confidence95(1);
-    y = 4-0.2*model;
-    err_start = 0;
-    err_end = abs(boot_shared_var(2,model).peak.confidence95(2)-boot_shared_var(2,model).peak.confidence95(1));
-    if model ==1, color = 'black'; elseif model >1 color = cmap(cmap_idx(model-1),:);end 
-    %errorbar(x, y, err_start, err_end, 'horizontal','Color',color, 'LineStyle', 'none', 'Marker', 'none', 'LineWidth', 3);
-
-    % add observed peak value as a dot
-    obs_peak_val = boot_shared_var(3,model).peak.orig;
-    plot(obs_peak_val, y, 'o', 'MarkerFaceColor', color, 'MarkerEdgeColor', 'none', 'MarkerSize', 8)
-end 
-ylim([-0.5 6])
-xticks([1 3.5 6])
-xticklabels({'Early';'Intermediate';'High'})
-legend(this_line,'ResNet18','ResNet50','AlexNet', 'DenseNet')
-title('PPA')
-ylabel('Shared Variance (%)')
-xlabel('Model layer')
-
-
-print(fullfile(out_dir, ['dth_shared_variance_PPA.svg']), ...
-             '-dsvg', '-r600')
-
-
