@@ -86,12 +86,12 @@ if statsInfo.stat(1)
     
     %estimate 95% confidence intervals
     if length(peak)>=100
-        %n1 = ceil(length(peak)*0.025);
-        %n2 = floor(length(peak)*0.975);
-        peakRow95(1) = mean(peak)-1.96*std(peak);
-        peakRow95(2) = mean(peak)+1.96*std(peak);
-        %peakRow95(1) = peak(n1);
-        %peakRow95(2) = peak(n2);
+        n1 = ceil(length(peak)*0.025);
+        n2 = floor(length(peak)*0.975);
+        %peakRow95(1) = mean(peak)-1.96*std(peak)/sqrt(length(peak));
+        %peakRow95(2) = mean(peak)+1.96*std(peak)/sqrt(length(peak));
+        peakRow95(1) = peak(n1);
+        peakRow95(2) = peak(n2);
         boots.peak.boot = peak;
         boots.peak.confidence95 = peakRow95;
         
@@ -109,8 +109,8 @@ if statsInfo.stat(2)
     onset = sort(onset_tmp(:,1));
     
     if length(onset)>=100
-        n1 = mean(peak)+1.96*std(peak);
-        n2 = mean(peak)-1.96*std(peak);
+        n1 = ceil(length(onset)*0.025);
+        n2 = floor(length(peak)*0.975);
         onsetRow95(1) =n1;
         onsetRow95(2) = n2;
         boots.onset.boot = onset;

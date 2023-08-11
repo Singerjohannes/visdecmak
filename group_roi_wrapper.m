@@ -56,7 +56,7 @@ fmri_subs = {fmri_subs.name}';
 % specify excluded subjects
 excluded_subjects = {'sub12'}; 
 
-%% manmade/natural decoding
+%% load decoding accuracies and distance-RT correlations
 
 decoding_roi = [];
 
@@ -77,58 +77,6 @@ for i_sub = 1:length(fmri_subs)
 end 
 
 fprintf('Mean decoding accuracies over all subjects EVC: %2f, PPA: %2f, LOC: %2f\n', mean(decoding_roi(:,1)),mean(decoding_roi(:,2)),mean(decoding_roi(:,3))); 
-
-% plot 
-
-roi_names = {'EVC'; 'LOC';'PPA'};
-
-%cmap = colormap('inferno');
-cmap = colormap('redblueTecplot');
-close all
-
-all_accs = mean(decoding_roi(:,1:3))';
-decoding_se = [std(decoding_roi(:,1))/sqrt(length(decoding_roi)),...
-            std(decoding_roi(:,2))/sqrt(length(decoding_roi)),...
-            std(decoding_roi(:,3))/sqrt(length(decoding_roi))]';
-
-figure
-h = bar(all_accs, 'grouped','FaceColor', 'flat');
-h.CData= [[0 0 0];cmap(256,:);cmap(200,:)];
-xticklabels([roi_names])
-yticks([0:5:35])
-yticklabels([50:5:85])
-xlabel('ROI')
-ylabel('Decoding Accuracy (%)')
-title('Manmade vs. Natural Decoding')
-
-hold on
-% Find the number of groups and the number of bars in each group
-ngroups = size(all_accs, 1);
-nbars = size(all_accs, 2);
-% Calculate the width for each bar group
-
-groupwidth = min(0.8, nbars/(nbars + 1.5));
-
-% Set the position of each error bar in the centre of the main bar
-% Based on barweb.m by Bolu Ajiboye from MATLAB File Exchxange
-for i = 1:nbars
-    % Calculate center of each bar
-    x = (1:ngroups) - groupwidth/2 + (2*i-1) * groupwidth / (2*nbars);
-    errorbar(x, all_accs(:,i), decoding_se(:,i), 'k', 'linestyle', 'none', 'linewidth', 2);
-end
-
-% loop through each roi
-for roi = 1:3
-    % plot individual data points for each roi
-    scatter(x(roi) * ones(length(decoding_roi), 1), decoding_roi(:,roi), 10, [0.6 0.6 0.6], 'filled','MarkerEdgeColor',[0.6 0.6 0.6]);
-end
-%legend({'Photos'; 'Drawings'; 'Sketches'} ,'Location','northeast')
-
-print(fullfile(out_dir, ['manmade_natural_decoding_ROI.svg']), ...
-             '-dsvg', '-r600')
-   
-         
-%% Distance-to-hyperplane correlation 
 
 dth_corr = [];       
 
@@ -177,7 +125,98 @@ dth_corr_distraction(find(dth_corr_distraction(:,1)==0),:,:) = [];
 fprintf('\nMean distance to hyperplane correlation over all subjects EVC: %2f, LOC: %2f, PPA: %2f\n',mean(dth_corr)); 
 fprintf('\nMean distance to hyperplane correlation for distraction over all subjects EVC: %2f, LOC: %2f, PPA: %2f\n', mean(dth_corr_distraction)); 
 
-% plot 
+%% compute statistics
+
+% set rng 
+rng(96)
+
+% set stats defaults 
+nperm = 10000;
+cluster_th = 0.001;
+significance_th = 0.05;
+tail = 'right';
+
+sig_decoding_EVC = permutation_1sample_alld (decoding_roi(:,1), nperm, cluster_th, significance_th, tail);
+
+sig_decoding_LOC = permutation_1sample_alld (decoding_roi(:,2), nperm, cluster_th, significance_th, tail);
+
+sig_decoding_PPA = permutation_1sample_alld (decoding_roi(:,3), nperm, cluster_th, significance_th, tail);
+
+[~,~,~,adj_p_decoding] = fdr_bh([sig_decoding_EVC sig_decoding_LOC sig_decoding_PPA]);
+
+tail = 'both';
+
+sig_dth_corr_EVC = permutation_1sample_alld(dth_corr(:,1), nperm, cluster_th, significance_th, tail);
+
+sig_dth_corr_LOC = permutation_1sample_alld(dth_corr(:,2), nperm, cluster_th, significance_th, tail);
+
+sig_dth_corr_PPA = permutation_1sample_alld(dth_corr(:,3), nperm, cluster_th, significance_th, tail);
+
+[~,~,~,adj_p_dth_corr] = fdr_bh([sig_dth_corr_EVC sig_dth_corr_LOC sig_dth_corr_PPA]);
+
+sig_dth_corr_distraction_EVC = permutation_1sample_alld(dth_corr_distraction(:,1), nperm, cluster_th, significance_th, tail);
+
+sig_dth_corr_distraction_LOC = permutation_1sample_alld(dth_corr_distraction(:,2), nperm, cluster_th, significance_th, tail);
+
+sig_dth_corr_distraction_PPA = permutation_1sample_alld(dth_corr_distraction(:,3), nperm, cluster_th, significance_th, tail);
+
+[~,~,~,adj_p_dth_corr_distraction] = fdr_bh([sig_dth_corr_distraction_EVC sig_dth_corr_distraction_LOC sig_dth_corr_distraction_PPA]);
+
+%% plot decoding accuracies
+
+roi_names = {'EVC'; 'LOC';'PPA'};
+
+%cmap = colormap('inferno');
+cmap = colormap('redblueTecplot');
+close all
+
+all_accs = mean(decoding_roi(:,1:3))';
+decoding_se = [std(decoding_roi(:,1))/sqrt(length(decoding_roi)),...
+            std(decoding_roi(:,2))/sqrt(length(decoding_roi)),...
+            std(decoding_roi(:,3))/sqrt(length(decoding_roi))]';
+
+figure
+h = bar(all_accs, 'grouped','FaceColor', 'flat');
+h.CData= [[0 0 0];cmap(256,:);cmap(200,:)];
+xticklabels([roi_names])
+yticks([0:5:35])
+yticklabels([50:5:85])
+xlabel('ROI')
+ylabel('Decoding Accuracy (%)')
+title('Manmade vs. Natural Decoding')
+
+hold on
+% Find the number of groups and the number of bars in each group
+ngroups = size(all_accs, 1);
+nbars = size(all_accs, 2);
+% Calculate the width for each bar group
+
+groupwidth = min(0.8, nbars/(nbars + 1.5));
+
+% Set the position of each error bar in the centre of the main bar
+% Based on barweb.m by Bolu Ajiboye from MATLAB File Exchxange
+for i = 1:nbars
+    % Calculate center of each bar
+    x = (1:ngroups) - groupwidth/2 + (2*i-1) * groupwidth / (2*nbars);
+    errorbar(x, all_accs(:,i), decoding_se(:,i), 'k', 'linestyle', 'none', 'linewidth', 2);
+end
+
+% loop through each roi
+for roi = 1:3
+     if adj_p_decoding(roi) < 0.05
+        % Add star for individually significant values
+        text(roi, all_accs(roi)+decoding_se(roi)+0.5, '*','Color','black', 'FontSize', 30, 'HorizontalAlignment', 'center');
+    end
+    % plot individual data points for each roi
+    scatter(x(roi) * ones(length(decoding_roi), 1), decoding_roi(:,roi), 10, [0.6 0.6 0.6], 'filled','MarkerEdgeColor',[0.6 0.6 0.6]);
+end
+%legend({'Photos'; 'Drawings'; 'Sketches'} ,'Location','northeast')
+
+print(fullfile(out_dir, ['manmade_natural_decoding_ROI.svg']), ...
+             '-dsvg', '-r600')
+   
+         
+%% plot distance-RT correlations
 
 roi_names = {'EVC'; 'LOC';'PPA'};%;'OPA';'RSC'};
 
@@ -218,6 +257,10 @@ end
 
 % loop through each roi
 for roi = 1:3
+    if adj_p_dth_corr(roi) < 0.05
+        % Add star for individually significant values
+        text(roi, all_accs(roi)-decoding_se(roi)-0.03, '*','Color','black', 'FontSize', 30, 'HorizontalAlignment', 'center');
+    end
     % plot individual data points for each roi
     scatter(x(roi) * ones(length(dth_corr), 1), dth_corr(:,roi), 10, [0.6 0.6 0.6], 'filled','MarkerEdgeColor',[0.6 0.6 0.6]);
 end
@@ -260,47 +303,13 @@ end
 
 % loop through each roi
 for roi = 1:3
+    if adj_p_dth_corr_distraction(roi) < 0.05
+        % Add star for individually significant values
+        text(roi, all_accs(roi)+decoding_se(roi)+0.01, '*','Color','black', 'FontSize', 30, 'HorizontalAlignment', 'center');
+    end
     % plot individual data points for each roi
     scatter(x(roi) * ones(length(dth_corr), 1), dth_corr_distraction(:,roi), 10, [0.6 0.6 0.6], 'filled','MarkerEdgeColor',[0.6 0.6 0.6]);
 end
 
 print(fullfile(out_dir,['dth_corr_distraction_ROI.svg']), ...
              '-dsvg', '-r600')
- 
-%% compute statistics
-
-% set rng 
-rng(96)
-
-% set stats defaults 
-nperm = 10000;
-cluster_th = 0.001;
-significance_th = 0.05;
-tail = 'right';
-
-sig_decoding_EVC = permutation_1sample_alld (decoding_roi(:,1), nperm, cluster_th, significance_th, tail);
-
-sig_decoding_LOC = permutation_1sample_alld (decoding_roi(:,2), nperm, cluster_th, significance_th, tail);
-
-sig_decoding_PPA = permutation_1sample_alld (decoding_roi(:,3), nperm, cluster_th, significance_th, tail);
-
-[~,~,~,adj_p_decoding] = fdr_bh([sig_decoding_EVC sig_decoding_LOC sig_decoding_PPA]);
-
-tail = 'both';
-
-sig_dth_corr_EVC = permutation_1sample_alld(dth_corr(:,1), nperm, cluster_th, significance_th, tail);
-
-sig_dth_corr_LOC = permutation_1sample_alld(dth_corr(:,2), nperm, cluster_th, significance_th, tail);
-
-sig_dth_corr_PPA = permutation_1sample_alld(dth_corr(:,3), nperm, cluster_th, significance_th, tail);
-
-[~,~,~,adj_p_dth_corr] = fdr_bh([sig_dth_corr_EVC sig_dth_corr_LOC sig_dth_corr_PPA]);
-
-sig_dth_corr_distraction_EVC = permutation_1sample_alld(dth_corr_distraction(:,1), nperm, cluster_th, significance_th, tail);
-
-sig_dth_corr_distraction_LOC = permutation_1sample_alld(dth_corr_distraction(:,2), nperm, cluster_th, significance_th, tail);
-
-sig_dth_corr_distraction_PPA = permutation_1sample_alld(dth_corr_distraction(:,3), nperm, cluster_th, significance_th, tail);
-
-[~,~,~,adj_p_dth_corr_distraction] = fdr_bh([sig_dth_corr_distraction_EVC sig_dth_corr_distraction_LOC sig_dth_corr_distraction_PPA]);
-
