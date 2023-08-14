@@ -14,10 +14,10 @@ The code was tested on Mac and Matlab2021a (with older Matlab versions there mig
 
 All first-level results can be reproduced with the decoding_wrapper.m script. 
 
-First-level analyses are based on the beta maps for each participant. These beta maps, the subject-specific ROI masks and the subject-specific deformation fields (for normalizing the results to the MNI template) are openly accesible via OSF (Link:). You first need to download the fMRI data component from OSF and then unzip and move them with the organize_fMRI_data.sh script (see the wiki of the OSF project page for more detailed intstructions). 
+First-level analyses are based on the beta maps for each participant and the behavioral data. The beta maps, the subject-specific ROI masks and the subject-specific deformation fields (for normalizing the results to the MNI template) are openly accesible via OSF (Link:https://osf.io/y8tx2/). You first need to download the fMRI data component and the behavioral data component from OSF and then unzip and move them with the organize_fMRI_data.sh script (see the wiki of the OSF project page for more detailed intstructions). 
 
 To run the decoding (ROI or searchlight) specify in the decoding_wrapper.m script which analysis you want to run (ROI or searchlight - see instructions in the decoding_wrapper.m script) and then run the script.
-Depending on the type of analyses this might be time intensive (ROI results can be obtained in around 1 hour but searchlight analyses can take up to 3 to 4 hours for a single subject). 
+Depending on the type of analyses this might be time intensive (ROI results for one subject can be obtained in around 1 hour but searchlight analyses can take up to 3 to 4 hours for a single subject). 
 
 ## Group-level analyses: 
 

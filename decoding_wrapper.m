@@ -3,19 +3,19 @@
 % possible analysis steps are:
 % Manmade/Natural Decoding - ROI and searchlight
 
-% clear all
-% clc
+clear all
+clc
 
 %setup paths
 
-path = pwd;
-parent_dir = fileparts(pwd);
+parent_dir = pwd;
 figure_path = fullfile(parent_dir,'figures');
 betas_path = fullfile(parent_dir,'betas');
 df_path = fullfile(parent_dir,'deformation_field');
 behav_path = fullfile(parent_dir,'behav');
 results_path = fullfile(parent_dir,'results');
 roi_path = fullfile(parent_dir,'roi');
+addpath(fullfile(pwd,'utils'))
 
 % get all subject names
 subs = dir(fullfile(betas_path,'*sub*'));
@@ -25,7 +25,7 @@ subs = {subs.name}';
 try
     decoding_defaults;
 catch
-    tdt_path = '/scratch/singej96/dfg_projekt/WP1/analysis_tools/tdt_3.999/decoding_toolbox';
+    tdt_path = input('The decoding toolbox does not seem to be on your path. Please specify the path for the folder where it is located:','s');
     addpath(tdt_path);
     % copy transres function to tdt directory, if not already there 
     if ~exist(fullfile(tdt_path,'transform_results','transres_mean_decision_values.m'))
@@ -39,7 +39,7 @@ try
     spm;
     close all
 catch
-    spm_path = '/scratch/singej96/dfg_projekt/WP1/analysis_tools/spm12';
+    spm_path = input('SPM does not seem to be on your path. Please specify the path of your SPM folder:','s');
     addpath(spm_path);
 end
 
@@ -51,7 +51,7 @@ set(0, 'defaultaxesfontsize', 14, 'defaultaxesfontweight', 'bold', ...
 
 %% manmade vs. natural decoding - ROI or searchlight
 
-for sub_idx = subjects
+for sub_idx = 1%:length(subs)
     
     % select the current subject
     sub = subs{sub_idx};
@@ -60,8 +60,8 @@ for sub_idx = subjects
     rng(sub_idx);
     
     cfg = [];
-    cfg.analysis = 'roi';
-    cfg.n_perm = 100; %how many times should the split-half averaging and decoding be repeated
+    cfg.analysis = 'searchlight';
+    cfg.n_perm = 10; %how many times should the split-half averaging and decoding be repeated
     avg_size = 2; % how many betas to average into one beta
     condition_names = cell(1,60);
     for i=1:60

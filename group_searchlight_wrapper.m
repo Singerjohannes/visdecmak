@@ -11,7 +11,7 @@ clc
 
 %setup paths 
 
-path = fileparts(pwd);
+path = pwd;
 figure_path = fullfile(path,'figures');
 % create figure path
 if ~isdir(figure_path); mkdir(figure_path); end 

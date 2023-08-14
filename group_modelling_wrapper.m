@@ -53,7 +53,7 @@ fmri_subs = dir(fullfile(results_path,'*sub*'));
 fmri_subs = {fmri_subs.name}';
 
 % specify excluded subjects
-excluded_subjects = {'sub12'};%{'sub08';'sub14';'sub15';'sub23';'sub29'}; 
+excluded_subjects = {'sub12'};
 
 dth_corr = [];
 
@@ -246,7 +246,6 @@ for sub = 1:size(dec_vals,1)
 for j_roi = 1:3
     for model_idx = 1:size(alexnet_distances,2)
         
-    %for sub = 1:30 
     xMRI = squeeze(dec_vals(sub,j_roi,:)); 
     xmodel = alexnet_distances(:,model_idx);
     
@@ -330,7 +329,7 @@ rng(96,'twister');
 for roi = 1:size(shared_var,2)-1
         for model = 1:size(shared_var,4)
 
-        boot_shared_var(roi,model) = bootstrap_peak_prob(squeeze(shared_var(:,roi,:,model)), [1:6],nboot,statsInfo);
+        boot_shared_var(roi,model) = bootstrap_fixed_1D(squeeze(shared_var(:,roi,:,model)), [1:6],nboot,statsInfo);
     end
 end
 
@@ -391,7 +390,7 @@ title('EVC')
 ylabel('Shared Variance (%)')
 xlabel('Model layer')
 
-print(fullfile(out_dir, ['dth_shared_variance_EVC_sub_CI.jpeg']), ...
+print(fullfile(out_dir, ['dth_shared_variance_EVC.jpeg']), ...
              '-djpeg', '-r600')
 
 clear this_line
@@ -445,46 +444,6 @@ title('LOC')
 ylabel('Shared Variance (%)')
 xlabel('Model layer')
 
-print(fullfile(out_dir, ['dth_shared_variance_LOC_sub_CI.jpeg']), ...
+print(fullfile(out_dir, ['dth_shared_variance_LOC.jpeg']), ...
              '-djpeg', '-r600')
-
-%% plot peak probabilities for across subjects 
-
-x = 1:length(boot_shared_var(1,1).peak.orig);
-clear this_line
-colors = {'black';cmap(ceil(256),:);cmap(ceil(200),:);cmap(ceil(20),:)};
-figure;
-hold on
-for i = 1:size(boot_shared_var,2)
-this_line(i)= plot(boot_shared_var(1,i).peak.orig,'Color',colors{i});
-%errorbar(x, boot_shared_var(1,i).peak.orig, boot_shared_var(1,i).peak.orig - boot_shared_var(1,i).peak.confidence95(1,:), boot_shared_var(1,i).peak.confidence95(2,:) - boot_shared_var(1,i).peak.orig, 'o','Color',colors{i});
-fill([x, fliplr(x)], [boot_shared_var(1,i).peak.confidence95(1,:), fliplr(boot_shared_var(1,i).peak.confidence95(2,:))], 'c', 'EdgeColor', 'None', 'FaceAlpha', 0.2,'Facecolor',colors{i});
-ylim([0 0.7])
-xticks([1 3.5 6])
-xticklabels({'Early';'Intermediate';'High'})
-ylabel('Proportion of subjects')
-xlabel('Model layer')
-legend(this_line,{'ResNet18','ResNet50','AlexNet', 'DenseNet'})
-end 
-title('EVC')
-print(fullfile(out_dir, ['dth_shared_variance_EVC_sub_prop_CI.jpeg']), ...
-             '-djpeg', '-r600')
-
-figure;
-hold on
-for i = 1:size(boot_shared_var,2)
-this_line(i)= plot(boot_shared_var(2,i).peak.orig,'Color',colors{i});
-%errorbar(x, boot_shared_var(1,i).peak.orig, boot_shared_var(1,i).peak.orig - boot_shared_var(1,i).peak.confidence95(1,:), boot_shared_var(1,i).peak.confidence95(2,:) - boot_shared_var(1,i).peak.orig, 'o','Color',colors{i});
-fill([x, fliplr(x)], [boot_shared_var(2,i).peak.confidence95(1,:), fliplr(boot_shared_var(2,i).peak.confidence95(2,:))], 'c', 'EdgeColor', 'None', 'FaceAlpha', 0.2,'Facecolor',colors{i});
-ylim([0 0.7])
-xticks([1 3.5 6])
-xticklabels({'Early';'Intermediate';'High'})
-ylabel('Proportion of subjects')
-xlabel('Model layer')
-legend(this_line,{'ResNet18','ResNet50','AlexNet', 'DenseNet'})
-end 
-title('LOC')
-print(fullfile(out_dir, ['dth_shared_variance_LOC_sub_prop_CI.jpeg']), ...
-             '-djpeg', '-r600')
-
 
