@@ -51,7 +51,7 @@ set(0, 'defaultaxesfontsize', 14, 'defaultaxesfontweight', 'bold', ...
 
 %% manmade vs. natural decoding - ROI or searchlight
 
-for sub_idx = 1%:length(subs)
+for sub_idx = 1:length(subs)
     
     % select the current subject
     sub = subs{sub_idx};
@@ -61,7 +61,7 @@ for sub_idx = 1%:length(subs)
     
     cfg = [];
     cfg.analysis = 'searchlight';
-    cfg.n_perm = 10; %how many times should the split-half averaging and decoding be repeated
+    cfg.n_perm = 100; %how many times should the split-half averaging and decoding be repeated
     avg_size = 2; % how many betas to average into one beta
     condition_names = cell(1,60);
     for i=1:60
