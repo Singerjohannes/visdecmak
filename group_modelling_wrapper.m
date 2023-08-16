@@ -1,4 +1,4 @@
-%% group searchlight wrapper
+%% group modelling wrapper
 % this script contains the group analyses for the neural network modelling results 
 
 clear all 
@@ -158,17 +158,17 @@ dist_files = dir(fullfile(modelling_path,'*.mat'));
 dist_filenames = {dist_files.name}'; 
 filenames_info = regexpi(dist_filenames,'^densenet161_places.*'); 
 
-vgg_distances = [];
+densenet_distances = [];
 for idx = 1:length(dist_filenames)
     
     if filenames_info{idx}
     results = load(fullfile(modelling_path,dist_filenames{idx}));
-    vgg_distances = cat(2,vgg_distances,abs(results.dec_vals'));
+    densenet_distances = cat(2,densenet_distances,abs(results.dec_vals'));
     end 
 end 
 
 order_idx = [6 1 2 3 4 5]; % ordered values from low to high level features
-vgg_distances =vgg_distances(:,order_idx);
+densenet_distances =densenet_distances(:,order_idx);
 
 % little check that the order idxs are correct 
 check_filenames = dist_filenames(find(~cellfun(@isempty,filenames_info)));
@@ -272,11 +272,11 @@ disp('Running commonality analysis...')
 
 for sub = 1:size(dec_vals,1)
 for j_roi = 1:3
-    for model_idx = 1:size(vgg_distances,2)
+    for model_idx = 1:size(densenet_distances,2)
         
     %for sub = 1:30 
     xMRI = squeeze(dec_vals(sub,j_roi,:)); 
-    xmodel = vgg_distances(:,model_idx);
+    xmodel = densenet_distances(:,model_idx);
     
     y = mean_RTs';
     
