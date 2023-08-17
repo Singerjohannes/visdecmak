@@ -3,8 +3,6 @@
 % computes the correlation between the mean RTs in the categorization and
 % distraction task and plots the results 
 
-
-
 clear all 
 %clc
 
