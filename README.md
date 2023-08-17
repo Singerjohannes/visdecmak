@@ -25,7 +25,7 @@ All group-level results and the statistics in the paper can be reproduced with t
 
 If you have not computed the first-level results with the steps described above you need to download the data from the first-level results component on OSF (https://osf.io/y8tx2/) and unzip and move the data with the organize_first_level_results.sh script (see the wiki of the OSF project page for more detailed intstructions). 
 
-After you have downloaded and unzipped the files you can use group_roi_wrapper.m, group_modelling_wrapper.m and group_searchlight_wrapper.m to compute the group-level statistics for all the analyses in the paper. 
+After you have downloaded and unzipped the files you can use group_roi_wrapper.m, group_modelling_wrapper.m, group_searchlight_wrapper.m, and group_behavioral_wrapper.m to compute the group-level statistics for all the analyses in the paper. 
 
 Please note that group_searchlight_wrapper.m will require big amounts of memory (up to 80GB RAM) which might preclude you from running this script on your local PC. 
 In this case, you can download the precomputed group-level statistics from the group-level results component on OSF. 
