@@ -272,3 +272,5 @@ hdr = rmfield(hdr, 'n');
 hdr.fname = fullfile(out_dir,[res_name,'_dth_corr_distraction_masked_max.nii']);
 mean_vol = mean(decoding_maps,4);
 spm_write_vol(hdr, mean_vol.*sig_searchlight_max);
+
+

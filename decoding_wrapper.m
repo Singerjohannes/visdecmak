@@ -2,6 +2,7 @@
 %
 % possible analysis steps are:
 % Manmade/Natural Decoding - ROI and searchlight
+% Basic Level Decoding - ROI and searchlight
 
 clear all
 clc

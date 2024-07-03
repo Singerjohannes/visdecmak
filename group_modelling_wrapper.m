@@ -182,6 +182,8 @@ addpath('/Users/johannessinger/scratch/dfg_projekt/WP1/analysis/utils')
 disp('Running commonality analysis...')
 
 shared_var = [];
+shared_var_model = [];
+shared_var_mri = [];
 for sub = 1:size(dec_vals,1)
 for j_roi = 1:3
     for model_idx = 1:size(resnet18_distances,2)
@@ -195,10 +197,13 @@ for j_roi = 1:3
     % and now again with another calculation
     [~,~,~,~,r2_mri] = regress(y, [ones(1,60)' xMRI]);
     [~,~,~,~,r2_model] = regress(y,[ones(1,60)' xmodel]);
-    [~,~,~,~,r2_full] = regress(y, [ones(1,60)' xmodel xMRI]);
+    [~,~,~,~,r2_mri_model] = regress(xMRI,[ones(1,60)' xmodel]);
 
-    
-    shared_var(sub,j_roi,model_idx,1) = r2_mri(1)+r2_model(1)-r2_full(1); 
+    [betas(sub,j_roi,model_idx,:),~,~,~,r2_full] = regress(y, [ones(1,60)' xmodel xMRI]);
+    r_vals_model(model_idx) = corr(xmodel,y);
+    r_vals_mri(sub,j_roi)= corr(xMRI,y);   
+    shared_var(sub,j_roi,model_idx,1) = r2_mri(1)+r2_model(1)-r2_full(1);
+    shared_var_mri(sub,j_roi,1) = r2_mri(1);
    % end 
 end
 end 
@@ -217,7 +222,6 @@ for sub = 1:size(dec_vals,1)
 for j_roi = 1:3
     for model_idx = 1:size(resnet50_distances,2)
         
-    %for sub = 1:30 
     xMRI = squeeze(dec_vals(sub,j_roi,:)); 
     xmodel = resnet50_distances(:,model_idx);
     
@@ -229,7 +233,8 @@ for j_roi = 1:3
     [~,~,~,~,r2_full] = regress(y, [ones(1,60)' xmodel xMRI]);
 
     
-    shared_var(sub,j_roi,model_idx,2) = r2_mri(1)+r2_model(1)-r2_full(1); 
+    shared_var(sub,j_roi,model_idx,2) = r2_mri(1)+r2_model(1)-r2_full(1);
+
    % end 
 end
 end 
@@ -274,7 +279,6 @@ for sub = 1:size(dec_vals,1)
 for j_roi = 1:3
     for model_idx = 1:size(densenet_distances,2)
         
-    %for sub = 1:30 
     xMRI = squeeze(dec_vals(sub,j_roi,:)); 
     xmodel = densenet_distances(:,model_idx);
     
@@ -371,7 +375,7 @@ for model = 1:size(shared_var,4)
     end 
     % plot peak CI 
     x = boot_shared_var(1,model).peak.confidence95(1);
-    y = 4-0.2*model;
+    y = 5-0.2*model;
     err_start = 0;
     err_end = abs(boot_shared_var(1,model).peak.confidence95(2)-boot_shared_var(1,model).peak.confidence95(1));
     if model ==1, color = 'black'; elseif model >1 color = cmap(cmap_idx(model-1),:);end 
@@ -381,17 +385,23 @@ for model = 1:size(shared_var,4)
     obs_peak_val = boot_shared_var(1,model).peak.orig;
     plot(obs_peak_val, y, 'o', 'MarkerFaceColor', color, 'MarkerEdgeColor', 'none', 'MarkerSize', 8)
 end 
+x = 1:6;
+y1 = ones(1,6)*(mean(shared_var_mri(:,1)) - std(shared_var_mri(:,1)) / sqrt(size(shared_var_mri,1))) * 100;
+y2 = ones(1,6)*(mean(shared_var_mri(:,1)) + std(shared_var_mri(:,1)) / sqrt(size(shared_var_mri,1))) * 100;
+% Filling the area between y1 and y2
+patch([x, fliplr(x)], [y1, fliplr(y2)],[0.5 0.5 0.5], 'EdgeColor', 'none', 'FaceAlpha', 0.3)
+this_line(end+1) = plot(x,ones(1,6)*mean(shared_var_mri(:,1))*100,'Color',[0.5 0.5 0.5])
 ylim([-0.5 6])
 xlim([1 6])
 xticks([1 3.5 6])
 xticklabels({'Early';'Intermediate';'High'})
-legend(this_line,'ResNet18','ResNet50','AlexNet', 'DenseNet')
+legend(this_line,'ResNet18','ResNet50','AlexNet', 'DenseNet','Brain-behavior')
 title('EVC')
 ylabel('Shared Variance (%)')
 xlabel('Model layer')
 
-print(fullfile(out_dir, ['dth_shared_variance_EVC.jpeg']), ...
-             '-djpeg', '-r600')
+print(fullfile(out_dir, ['dth_shared_variance_EVC.svg']), ...
+             '-dsvg', '-r600')
 
 clear this_line
 fig = figure;
@@ -426,7 +436,7 @@ for model = 1:size(shared_var,4)
     end 
         % plot peak CI 
     x = boot_shared_var(2,model).peak.confidence95(1);
-    y = 5.4-0.2*model;
+    y = 6-0.2*model;
     err_start = 0;
     err_end = abs(boot_shared_var(2,model).peak.confidence95(2)-boot_shared_var(2,model).peak.confidence95(1));
     if model ==1, color = 'black'; elseif model >1 color = cmap(cmap_idx(model-1),:);end 
@@ -436,6 +446,13 @@ for model = 1:size(shared_var,4)
     obs_peak_val = boot_shared_var(2,model).peak.orig;
     plot(obs_peak_val, y, 'o', 'MarkerFaceColor', color, 'MarkerEdgeColor', 'none', 'MarkerSize', 8)
 end 
+x = 1:6;
+y1 = ones(1,6)*(mean(shared_var_mri(:,2)) - std(shared_var_mri(:,2)) / sqrt(size(shared_var_mri,1))) * 100;
+y2 = ones(1,6)*(mean(shared_var_mri(:,2)) + std(shared_var_mri(:,2)) / sqrt(size(shared_var_mri,1))) * 100;
+% Filling the area between y1 and y2
+patch([x, fliplr(x)], [y1, fliplr(y2)],[0.5 0.5 0.5], 'EdgeColor', 'none', 'FaceAlpha', 0.3)
+plot(x,ones(1,6)*mean(shared_var_mri(:,2))*100,'Color',[0.5 0.5 0.5])
+hold off
 ylim([-0.5 6])
 xticks([1 3.5 6])
 xticklabels({'Early';'Intermediate';'High'})
@@ -444,6 +461,6 @@ title('LOC')
 ylabel('Shared Variance (%)')
 xlabel('Model layer')
 
-print(fullfile(out_dir, ['dth_shared_variance_LOC.jpeg']), ...
-             '-djpeg', '-r600')
+print(fullfile(out_dir, ['dth_shared_variance_LOC.svg']), ...
+             '-dsvg', '-r600')
 
