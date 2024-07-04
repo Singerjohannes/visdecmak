@@ -125,65 +125,6 @@ dth_corr_distraction(find(dth_corr_distraction(:,1)==0),:,:) = [];
 fprintf('\nMean distance to hyperplane correlation over all subjects EVC: %2f, LOC: %2f, PPA: %2f\n',mean(dth_corr)); 
 fprintf('\nMean distance to hyperplane correlation for distraction over all subjects EVC: %2f, LOC: %2f, PPA: %2f\n', mean(dth_corr_distraction)); 
 
-%% try LASSO regression with the distance values 
-
-predictor_names ={'EVC'; 'LOC';'PPA'};
-
-for sub = 1:size(dec_vals,1)
-X = zscore(squeeze(dec_vals(sub,1:3,:)),0,2)';
-y = mean_RTs;
-[LassoBetaEstimates(:,:,sub),FitInfo(sub)] = lasso(X,y,'Standardize',false,...
-    'PredictorNames',predictor_names);
-
-% compute correlation for each lambda value
-for i=1:size(LassoBetaEstimates,2)
-    predicted_RTs = FitInfo(sub).Intercept(i)+X*LassoBetaEstimates(:,i,sub);
-    r(i,sub)= corr(predicted_RTs,y','Type','Pearson');
-end
-end 
-% Calculate mean and standard error across subjects
-meanBetas = mean(LassoBetaEstimates, 3);
-stdBetas = std(LassoBetaEstimates, 0, 3) / sqrt(size(LassoBetaEstimates, 3));
-meanr= mean(r,2);
-stdr = std(r,0,2)/sqrt(size(LassoBetaEstimates, 3));
-% Create axes within the figure
-hax = lassoPlot(mean(LassoBetaEstimates,3),FitInfo(1));
-L1Vals = hax.Children.XData;
-% Get handles to the lines
-lineHandles = hax.Children;
-
-% Initialize a cell array to store the colors
-lineColors = cell(size(lineHandles));
-
-% Loop through each line handle and get the color
-for i = 1:length(lineHandles)
-    lineColors{i} = get(lineHandles(i), 'Color');
-end
-hold on
-for roi = 1:3
-errorbar(L1Vals, meanBetas(roi,:), stdBetas(roi,:), 'o-', 'LineWidth', 2,'Color',lineColors{roi});
-end 
-%ylim([-20*1e-4,0.1*1e-3])
-yyaxis right
-h = plot(L1Vals,mean(r,2),'LineWidth',2,'LineStyle','--');
-lineColor = get(h, 'Color')
-errorbar(L1Vals, meanr, stdr, 'o-', 'LineWidth', 2,'Color',lineColor);
-
-%ylim([0.18,0.3])
-% %i = plot(L1Vals,FitInfo.MSE,'LineWidth',2,'LineStyle','--');
-% fill([L1Vals, fliplr(L1Vals)], ...
-%      [nanmean(noise_ceiling_lower) * ones(size(L1Vals,2)), fliplr(nanmean(noise_ceiling_upper) * ones(size(L1Vals,2)))], ...
-%      [0.9, 0.9, 0.9], 'EdgeColor', 'none', 'FaceAlpha', 0.07);
-ylabel('Pearson R')
-title('Lasso coefficients with different regularization strength')
-legend(cat(1,predictor_names(:),'R'),'Location','southwest')
-% After creating the plot
-currentFig = gcf;
-set(currentFig, 'Position', [100, 100, 800, 600]); % Adjust width and height as needed
-% save figure
-%print(fullfile(out_dir, ['R2_lasso_distances_all_ROIs.jpg']), ...
-%    '-djpeg', '-r600')
-
 %% compute statistics
 
 % set rng 

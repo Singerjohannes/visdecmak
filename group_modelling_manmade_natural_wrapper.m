@@ -1,5 +1,6 @@
 %% group modelling wrapper
-% this script contains the group analyses for the neural network modelling results 
+% this script contains the group analyses for the neural network modelling
+% for manmade/natural categorization
 
 clear all 
 clc
@@ -45,7 +46,7 @@ cluster_th = 0.001;
 significance_th = 0.05;
 tail = 'right';
 
-%% load fmri and behavioral results 
+%% load fmri and behavioral results for manmade/natural categorization
 
 % get fmri subnames 
 

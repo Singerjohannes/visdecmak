@@ -39,8 +39,8 @@ cfg.results.overwrite = 1;
 % Set the filepath where your SPM.mat and all related betas are, e.g. 'c:\exp\glm\model_button'
 % done already
 
-% Set the filename of your brain mask (or your ROI masks as cell matrix) 
-% for searchlight or wholebrain e.g. 'c:\exp\glm\model_button\mask.img' OR 
+% Set the filename of your brain mask (or your ROI masks as cell matrix)
+% for searchlight or wholebrain e.g. 'c:\exp\glm\model_button\mask.img' OR
 % for ROI e.g. {'c:\exp\roi\roimaskleft.img', 'c:\exp\roi\roimaskright.img'}
 try cfg.files.mask;
 catch
@@ -54,21 +54,21 @@ catch
 end
 
 % Set additional parameters manually if you want (see decoding.m or
-% decoding_defaults.m). Below some example parameters that you might want 
+% decoding_defaults.m). Below some example parameters that you might want
 % to use:
 
 % in case similarities should be calculated
 if strcmpi(cfg.decoding.software,'similarity')
     cfg.decoding.method = 'classification';
-end 
+end
 
 cfg.searchlight.unit = 'voxels'; %'mm'
-cfg.searchlight.radius =4; % 12; this will yield a searchlight radius of 12mm or 10mm 
+cfg.searchlight.radius =4; % 12; this will yield a searchlight radius of 12mm or 10mm
 cfg.searchlight.spherical = 1;
 cfg.plot_design = 0;
 cfg.verbose = 2; % you want all information to be printed on screen
 
-% cfg.decoding.train.classification.model_parameters = '-s 0 -t 0 -c 1 -b 0 -q'; 
+% cfg.decoding.train.classification.model_parameters = '-s 0 -t 0 -c 1 -b 0 -q';
 cfg.results.output = {'accuracy_minus_chance';'mean_decision_values'};
 
 % Decide whether you want to see the searchlight/ROI/... during decoding
@@ -83,62 +83,73 @@ cfg.results.output = {'accuracy_minus_chance';'mean_decision_values'};
 % repeat averaging and decoding for n times
 for perm = 1:cfg.n_perm
     
-% for each permutation choose a random selection of distractors to match
-% the number of targets
-rand_vec = randperm(length(distractor_condition_names),length(target_condition_names));
-distractor_condition_names = distractor_condition_names(rand_vec);
-condition_names = cat(2,target_condition_names,distractor_condition_names); 
+    % for each permutation choose a random selection of distractors to match
+    % the number of targets
+    rand_vec = randperm(length(distractor_condition_names),length(target_condition_names));
+    these_distractor_condition_names = distractor_condition_names(rand_vec);
+    condition_names = cat(2,target_condition_names,these_distractor_condition_names);
     
-% use a different folder for every iteration
-cfg.results.dir = fullfile(out_dir,num2str(perm));
-
-% Set the following field:
-% Full path to file names (1xn cell array) (e.g.
-% {'c:\exp\glm\model_button\im1.nii', 'c:\exp\glm\model_button\im2.nii', ... }
-betas = dir(fullfile(beta_avg_dir,['*',target_condition_names{1}(1:end-2),'*']));
-betas = {betas.name}';
-betas = natsortfiles(betas); 
-cfg.files.name = fullfile(beta_avg_dir,betas);
-% and the other two fields if you use a make_design function (e.g. make_design_cv)
-%
-if n_betas == 8 
-% (1) a nx1 vector to indicate what data you want to keep together for 
-% cross-validation (typically runs, so enter run numbers)
-cfg.files.chunk = repmat([1:3],1,20)'; 
-%
-% (2) any numbers as class labels, normally we use 1 and -1. Each file gets a
-% label number (i.e. a nx1 vector)
-cfg.files.label = [ones(1,10*3) ones(1,10*3)*2]';
-
-% This creates the leave-one-run-out cross validation design:
-cfg.design = make_design_cv(cfg); 
-cfg.design.label(:,2:end) = [];
-cfg.design.set = cfg.design.set(1); 
-cfg.design.train(:,1) = repmat([1 1 0],1,20); 
-cfg.design.train(:,2:end) = [];
-cfg.design.test(:,1) = repmat([0 0 1],1,20); 
-cfg.design.test(:,2:end)= [];
-
-elseif n_betas > 8 
-    % (1) a nx1 vector to indicate what data you want to keep together for 
-% cross-validation (typically runs, so enter run numbers)
-cfg.files.chunk = repmat([1:4],1,20)'; 
-%
-% (2) any numbers as class labels, normally we use 1 and -1. Each file gets a
-% label number (i.e. a nx1 vector)
-cfg.files.label = [ones(1,10*4) ones(1,10*4)*2]';
-
-% This creates the leave-one-run-out cross validation design:
-cfg.design = make_design_cv(cfg); 
-cfg.design.label(:,2:end) = [];
-cfg.design.set = cfg.design.set(1); 
-cfg.design.train(:,1) = repmat([1 1 1 0],1,20); 
-cfg.design.train(:,2:end) = [];
-cfg.design.test(:,1) = repmat([0 0 0 1],1,20); 
-cfg.design.test(:,2:end)= [];
+    % use a different folder for every iteration
+    cfg.results.dir = fullfile(out_dir,num2str(perm));
+    
+    % Set the following field:
+    % Full path to file names (1xn cell array) (e.g.
+    % {'c:\exp\glm\model_button\im1.nii', 'c:\exp\glm\model_button\im2.nii', ... }
+    betas = dir(fullfile(beta_avg_dir,['*',target_condition_names{1}(1:end-2),'*']));
+    betas = {betas.name}';
+    betas = natsortfiles(betas);
+    
+    % filter out only the betas corresponding to the target and distractor
+    % conditions 
+    for i = 1:length(betas)
+        keep = false(size(condition_names));
+        for j = 1:length(condition_names)
+            keep(j) = strcmpi(betas{i}(1:end-15), condition_names{j});
+        end
+        filter_betas(i) = any(keep);
+    end
+    
+    cfg.files.name = fullfile(beta_avg_dir,betas(filter_betas));
+    % and the other two fields if you use a make_design function (e.g. make_design_cv)
+    %
+    if n_betas == 8
+        % (1) a nx1 vector to indicate what data you want to keep together for
+        % cross-validation (typically runs, so enter run numbers)
+        cfg.files.chunk = repmat([1:3],1,20)';
+        %
+        % (2) any numbers as class labels, normally we use 1 and -1. Each file gets a
+        % label number (i.e. a nx1 vector)
+        cfg.files.label = [ones(1,10*3) ones(1,10*3)*2]';
+        
+        % This creates the leave-one-run-out cross validation design:
+        cfg.design = make_design_cv(cfg);
+        cfg.design.label(:,2:end) = [];
+        cfg.design.set = cfg.design.set(1);
+        cfg.design.train(:,1) = repmat([1 1 0],1,20);
+        cfg.design.train(:,2:end) = [];
+        cfg.design.test(:,1) = repmat([0 0 1],1,20);
+        cfg.design.test(:,2:end)= [];
+        
+    elseif n_betas > 8
+        % (1) a nx1 vector to indicate what data you want to keep together for
+        % cross-validation (typically runs, so enter run numbers)
+        cfg.files.chunk = repmat([1:4],1,20)';
+        %
+        % (2) any numbers as class labels, normally we use 1 and -1. Each file gets a
+        % label number (i.e. a nx1 vector)
+        cfg.files.label = [ones(1,10*4) ones(1,10*4)*2]';
+        
+        % This creates the leave-one-run-out cross validation design:
+        cfg.design = make_design_cv(cfg);
+        cfg.design.label(:,2:end) = [];
+        cfg.design.set = cfg.design.set(1);
+        cfg.design.train(:,1) = repmat([1 1 1 0],1,20);
+        cfg.design.train(:,2:end) = [];
+        cfg.design.test(:,1) = repmat([0 0 0 1],1,20);
+        cfg.design.test(:,2:end)= [];
+    end
+    
+    % run decoding
+    results = decoding(cfg);
 end
-
-% run decoding 
-results = decoding(cfg);
-end  
-end 
+end
