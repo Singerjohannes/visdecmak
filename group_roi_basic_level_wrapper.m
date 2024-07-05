@@ -57,6 +57,12 @@ excluded_subjects = {'sub12'};
 
 %% decoding accuracies and compute distance-RT correlations
 
+% get fmri subnames 
+
+fmri_subs = dir(fullfile(results_path,'*sub*'));
+fmri_subs = {fmri_subs.name}';
+fmri_subs = fmri_subs(1:end-1);
+
 % specify some constants
 n_cat = 6;
 n_roi = 3;
@@ -141,7 +147,7 @@ end
 rng(96)
 
 % set stats defaults
-nperm = 10000;
+nperm = 100000;
 cluster_th = 0.001;
 significance_th = 0.05;
 tail = 'right';

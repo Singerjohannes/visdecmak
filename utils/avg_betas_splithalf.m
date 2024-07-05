@@ -9,7 +9,7 @@ end
 if ~exist(out_dir), mkdir(out_dir), end; 
 
 % since the labels are arbitrary, we will set them randomly to -1 and 1
-labels = [ones(1,30) ones(1,30)*2];
+labels = [ones(1,length(labelnames)/2) ones(1,length(labelnames)/2)*2];
 
 % The following function extracts all beta names and corresponding run
 % numbers from the SPM.mat
