@@ -85,9 +85,15 @@ for perm = 1:cfg.n_perm
     
     % for each permutation choose a random selection of distractors to match
     % the number of targets
-    rand_vec = randperm(length(distractor_condition_names),length(target_condition_names));
-    these_distractor_condition_names = distractor_condition_names(rand_vec);
+    rand_vec1 = randperm(length(distractor_condition_names)/2,length(target_condition_names)/2);
+    rand_vec2 = randperm(length(distractor_condition_names)/2,length(target_condition_names)/2);
+    
+    these_distractor_condition_names = cat(2,distractor_condition_names(rand_vec1),distractor_condition_names(rand_vec1+length(distractor_condition_names)/2));
     condition_names = cat(2,target_condition_names,these_distractor_condition_names);
+    
+    % average betas so that we have 2 betas for training and 1 beta for
+    % testing
+    n_betas = avg_betas_splithalf(condition_names,avg_size, beta_dir, beta_avg_dir,cfg);
     
     % use a different folder for every iteration
     cfg.results.dir = fullfile(out_dir,num2str(perm));
@@ -99,17 +105,7 @@ for perm = 1:cfg.n_perm
     betas = {betas.name}';
     betas = natsortfiles(betas);
     
-    % filter out only the betas corresponding to the target and distractor
-    % conditions 
-    for i = 1:length(betas)
-        keep = false(size(condition_names));
-        for j = 1:length(condition_names)
-            keep(j) = strcmpi(betas{i}(1:end-15), condition_names{j});
-        end
-        filter_betas(i) = any(keep);
-    end
-    
-    cfg.files.name = fullfile(beta_avg_dir,betas(filter_betas));
+    cfg.files.name = fullfile(beta_avg_dir,betas);
     % and the other two fields if you use a make_design function (e.g. make_design_cv)
     %
     if n_betas == 8

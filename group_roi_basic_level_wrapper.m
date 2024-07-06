@@ -61,7 +61,7 @@ excluded_subjects = {'sub12'};
 
 fmri_subs = dir(fullfile(results_path,'*sub*'));
 fmri_subs = {fmri_subs.name}';
-fmri_subs = fmri_subs(1:end-1);
+%fmri_subs = fmri_subs(1:end-1);
 
 % specify some constants
 n_cat = 6;
@@ -80,7 +80,7 @@ for cat_idx = 1:n_cat
     disp(res_name)
     decoding_roi = [];
     
-    for i_sub = 1:length(fmri_subs)-1
+    for i_sub = 1:length(fmri_subs)
         
         sub_id = fmri_subs{i_sub};
         
