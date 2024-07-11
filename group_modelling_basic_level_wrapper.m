@@ -30,7 +30,7 @@ try
     spm;
     close all
 catch
-    spm_path = '/scratch/singej96/dfg_projekt/WP1/analysis_tools/spm12';
+    spm_path = input('Please insert the path to your SPM folder:');
     addpath(spm_path);
 end
 
@@ -113,7 +113,7 @@ end
 
 
 % load behavior
-load(fullfile('/Users/johannessinger/scratch/dfg_projekt/WP1/derived/', 'behav','mean_RTs_basic_categorization.mat'))
+load(fullfile(behav_path,'mean_RTs_basic_categorization.mat'))
 
 mean_RTs = nanmean(mean_RTs,1);%.*[ones(1,30), ones(1,30)*-1]
 
@@ -176,7 +176,7 @@ for idx = 1:length(dist_filenames)
     end 
 end 
 
-order_idx = [2 3 5 6 4 1]; % ordered values from low to high level features
+order_idx = [4 5 7 8 6 3]; % ordered values from low to high level features
 alexnet_distances =alexnet_distances(:,order_idx);
 
 % little check that the order idxs are correct 
@@ -220,28 +220,22 @@ for sub = 1:size(dec_vals_mat,1)
 for j_roi = 1:3
     for model_idx = 1:size(resnet18_distances,2)
         
-    %for sub = 1:30 
     xMRI = squeeze(dec_vals_mat(sub,:,j_roi))'; 
     xmodel = resnet18_distances(:,model_idx);
     
     y = mean_RTs';
     
-    % and now again with another calculation
+    % calculate regressions
     [~,~,~,~,r2_mri] = regress(y, [ones(1,60)' xMRI]);
     [~,~,~,~,r2_model] = regress(y,[ones(1,60)' xmodel]);
-    [~,~,~,~,r2_mri_model] = regress(xMRI,[ones(1,60)' xmodel]);
-
-    [betas(sub,j_roi,model_idx,:),~,~,~,r2_full] = regress(y, [ones(1,60)' xmodel xMRI]);
-    r_vals_model(model_idx) = corr(xmodel,y);
-    r_vals_mri(sub,j_roi)= corr(xMRI,y);   
+    [~,~,~,~,r2_full] = regress(y, [ones(1,60)' xmodel xMRI]);
+    
+    % substract according to formula
     shared_var(sub,j_roi,model_idx,1) = r2_mri(1)+r2_model(1)-r2_full(1);
-    shared_var_mri(sub,j_roi,1) = r2_mri(1);
-   % end 
 end
 end 
 end
 disp('done.')
-
 
 %% shared variance for each model independently - ResNet50
 
@@ -259,15 +253,14 @@ for j_roi = 1:3
     
     y = mean_RTs';
     
-    % and now again with another calculation
+    % calculate regressions
     [~,~,~,~,r2_mri] = regress(y, [ones(1,60)' xMRI]);
     [~,~,~,~,r2_model] = regress(y,[ones(1,60)' xmodel]);
     [~,~,~,~,r2_full] = regress(y, [ones(1,60)' xmodel xMRI]);
-
     
+    % substract according to formula
     shared_var(sub,j_roi,model_idx,2) = r2_mri(1)+r2_model(1)-r2_full(1);
 
-   % end 
 end
 end 
 end
@@ -288,14 +281,13 @@ for j_roi = 1:3
     
     y = mean_RTs';
     
-    % and now again with another calculation
+    % calculate regressions
     [~,~,~,~,r2_mri] = regress(y, [ones(1,60)' xMRI]);
     [~,~,~,~,r2_model] = regress(y,[ones(1,60)' xmodel]);
     [~,~,~,~,r2_full] = regress(y, [ones(1,60)' xmodel xMRI]);
 
-    
+    % substract according to formula
     shared_var(sub,j_roi,model_idx,3) = r2_mri(1)+r2_model(1)-r2_full(1); 
-   % end 
 end
 end 
 end
@@ -316,15 +308,15 @@ for j_roi = 1:3
     
     y = mean_RTs';
     
-    % and now again with another calculation
+    % calculate regressions
     [~,~,~,~,r2_mri] = regress(y, [ones(1,60)' xMRI]);
     [~,~,~,~,r2_model] = regress(y,[ones(1,60)' xmodel]);
     [~,~,~,~,r2_full] = regress(y, [ones(1,60)' xmodel xMRI]);
 
-    
+    % substract according to formula
     shared_var(sub,j_roi,model_idx,4) = r2_mri(1)+r2_model(1)-r2_full(1); 
-   % end 
-end
+
+    end
 end 
 end
 disp('done.')
@@ -338,9 +330,9 @@ rng(96,'twister')
 nperm = 10000;
 cluster_th = 0.001;
 significance_th = 0.05;
-tail = 'both';
+tail = 'right';
 
-for roi = 1 % calculate stats only for EVC
+for roi = 1:2 % calculate stats only for EVC and LOC
     for layer = 1:size(shared_var,3)
         for model = 1:size(shared_var,4)
 
@@ -355,14 +347,14 @@ end
 statsInfo.nperm = 10000;
 statsInfo.cluster_th = 0.001;
 statsInfo.significance_th = 0.05;
-statsInfo.tail = 'both';
+statsInfo.tail = 'right';
 statsInfo.stat = [1 0]; 
 nboot = 100000; 
 
 % set rng to a fixed number 
 rng(96,'twister');
 
-for roi = 1
+for roi = 1:2
         for model = 1:size(shared_var,4)
 
         boot_shared_var(roi,model) = bootstrap_fixed_1D(squeeze(shared_var(:,roi,:,model)), [1:6],nboot,statsInfo);
@@ -386,14 +378,14 @@ options.alpha      = 0.5;
 options.line_width = 3;
 this_line(1) = plot_areaerrorbar(squeeze(shared_var(:,1,:,1))*100,options);
 hold on
-options.color_area = cmap(ceil(256),:);%rgb('DarkSeaGreen');
-options.color_line = cmap(ceil(256),:);%rgb('Green');
+options.color_area = cmap(ceil(256),:);
+options.color_line = cmap(ceil(256),:);
 this_line(2) = plot_areaerrorbar(squeeze(shared_var(:,1,:,2))*100,options);
-options.color_area = cmap(ceil(200),:);%rgb('Violet');    % Orange theme
-options.color_line = cmap(ceil(200),:)%rgb('Purple');
+options.color_area = cmap(ceil(200),:);
+options.color_line = cmap(ceil(200),:);
 this_line(3) = plot_areaerrorbar(squeeze(shared_var(:,1,:,3))*100,options);
-options.color_area = cmap(ceil(20),:);%rgb('Violet');    % Orange theme
-options.color_line = cmap(ceil(20),:)%rgb('Purple');
+options.color_area = cmap(ceil(20),:);
+options.color_line = cmap(ceil(20),:);
 this_line(4) = plot_areaerrorbar(squeeze(shared_var(:,1,:,4))*100,options);
 for model = 1:size(shared_var,4)
     % plot stats 
@@ -401,13 +393,13 @@ for model = 1:size(shared_var,4)
     this_sig(this_sig>0.05) = NaN;
     this_sig(this_sig<0.05) = 1; 
     if model == 1 
-        plot(options.x_axis,this_sig*-0.12*model,'.','Color','black','MarkerSize',15);
+        plot(options.x_axis,this_sig*-0.12*model-0.5,'.','Color','black','MarkerSize',15);
     elseif model >1
-        plot(options.x_axis,this_sig*-0.12*model,'.','Color',cmap(cmap_idx(model-1),:),'MarkerSize',15);
+        plot(options.x_axis,this_sig*-0.12*model-0.5,'.','Color',cmap(cmap_idx(model-1),:),'MarkerSize',15);
     end 
     % plot peak CI 
     x = boot_shared_var(1,model).peak.confidence95(1);
-    y = 5-0.2*model;
+    y = 4.5-0.2*model;
     err_start = 0;
     err_end = abs(boot_shared_var(1,model).peak.confidence95(2)-boot_shared_var(1,model).peak.confidence95(1));
     if model ==1, color = 'black'; elseif model >1 color = cmap(cmap_idx(model-1),:);end 
@@ -423,7 +415,7 @@ y2 = ones(1,6)*(mean(shared_var_mri(:,1)) + std(shared_var_mri(:,1)) / sqrt(size
 % Filling the area between y1 and y2
 patch([x, fliplr(x)], [y1, fliplr(y2)],[0.5 0.5 0.5], 'EdgeColor', 'none', 'FaceAlpha', 0.3)
 this_line(end+1) = plot(x,ones(1,6)*mean(shared_var_mri(:,1))*100,'Color',[0.5 0.5 0.5])
-ylim([-0.5 6])
+ylim([-1 4.5])
 xlim([1 6])
 xticks([1 3.5 6])
 xticklabels({'Early';'Intermediate';'High'})
@@ -433,4 +425,66 @@ ylabel('Shared Variance (%)')
 xlabel('Model layer')
 
 print(fullfile(out_dir, ['dth_shared_variance_basic_level_EVC.svg']), ...
+             '-dsvg', '-r600')
+
+%% plot for LOC
+fig = figure;
+clear this_line
+options = [];
+options.handle = fig;
+options.x_axis = [1:6];
+options.error = 'sem';
+options.color_area = 'black';
+options.color_line = [17 17 17]./255;
+options.alpha      = 0.5;
+options.line_width = 3;
+this_line(1) = plot_areaerrorbar(squeeze(shared_var(:,2,:,1))*100,options);
+hold on
+options.color_area = cmap(ceil(256),:);
+options.color_line = cmap(ceil(256),:);
+this_line(2) = plot_areaerrorbar(squeeze(shared_var(:,2,:,2))*100,options);
+options.color_area = cmap(ceil(200),:);
+options.color_line = cmap(ceil(200),:);
+this_line(3) = plot_areaerrorbar(squeeze(shared_var(:,2,:,3))*100,options);
+options.color_area = cmap(ceil(20),:);
+options.color_line = cmap(ceil(20),:);
+this_line(4) = plot_areaerrorbar(squeeze(shared_var(:,2,:,4))*100,options);
+for model = 1:size(shared_var,4)
+    % plot stats 
+    this_sig = adj_p_shared_var_diff(2,:,model);
+    this_sig(this_sig>0.05) = NaN;
+    this_sig(this_sig<0.05) = 1; 
+    if model == 1 
+        plot(options.x_axis,this_sig*-0.12*model-0.5,'.','Color','black','MarkerSize',15);
+    elseif model >1
+        plot(options.x_axis,this_sig*-0.12*model-0.5,'.','Color',cmap(cmap_idx(model-1),:),'MarkerSize',15);
+    end 
+    % plot peak CI 
+    x = boot_shared_var(1,model).peak.confidence95(1);
+    y = 4-0.2*model;
+    err_start = 0;
+    err_end = abs(boot_shared_var(2,model).peak.confidence95(2)-boot_shared_var(2,model).peak.confidence95(1));
+    if model ==1, color = 'black'; elseif model >1 color = cmap(cmap_idx(model-1),:);end 
+    errorbar(x, y, err_start, err_end, 'horizontal','Color',color, 'LineStyle', 'none', 'Marker', 'none', 'LineWidth', 3);
+
+    % add observed peak value as a dot
+    obs_peak_val = boot_shared_var(2,model).peak.orig;
+    plot(obs_peak_val, y, 'o', 'MarkerFaceColor', color, 'MarkerEdgeColor', 'none', 'MarkerSize', 8)
+end 
+x = 1:6;
+y1 = ones(1,6)*(mean(shared_var_mri(:,2)) - std(shared_var_mri(:,2)) / sqrt(size(shared_var_mri,1))) * 100;
+y2 = ones(1,6)*(mean(shared_var_mri(:,2)) + std(shared_var_mri(:,2)) / sqrt(size(shared_var_mri,1))) * 100;
+% Filling the area between y1 and y2
+patch([x, fliplr(x)], [y1, fliplr(y2)],[0.5 0.5 0.5], 'EdgeColor', 'none', 'FaceAlpha', 0.3)
+this_line(end+1) = plot(x,ones(1,6)*mean(shared_var_mri(:,2))*100,'Color',[0.5 0.5 0.5])
+ylim([-1  4.5])
+xlim([1 6])
+xticks([1 3.5 6])
+xticklabels({'Early';'Intermediate';'High'})
+legend(this_line,'ResNet18','ResNet50','AlexNet', 'DenseNet','Brain-behavior')
+title('LOC')
+ylabel('Shared Variance (%)')
+xlabel('Model layer')
+
+print(fullfile(out_dir, ['dth_shared_variance_basic_level_LOC.svg']), ...
              '-dsvg', '-r600')

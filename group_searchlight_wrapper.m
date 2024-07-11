@@ -1,6 +1,6 @@
 %% group searchlight wrapper
 % this script contains all the group analyses for the searchlight results 
-% 1. Manmade/Natural Decoding + Statistics 
+% 1. Manmade/Natural or Basic-level Decoding + Statistics 
 % 2. Distance-to-hyperplane correlation with the categorization RTs +
 % statistics 
 % 3. Distance-to-hyperplane correlation with the distraction RTs +
@@ -45,7 +45,7 @@ cluster_th = 0.001;
 significance_th = 0.05;
 tail = 'right';
 
-%% manmade/natural decoding + statistics
+%% decoding + statistics
 
 % get fmri subnames 
 
@@ -59,7 +59,7 @@ fmri_excluded_subs = {'sub12'};  %sub12 was excluded because didnt fit inclusion
 decoding_maps = [];
 
 %specify results name
-res_name = 'manmade_natural';
+res_name = 'manmade_natural'; % change to "basic-level" in case you want to compute statistics for basic-level decoding 
 fname = 'wres_accuracy_minus_chance.nii';
 
 % load searchlight results
@@ -153,7 +153,7 @@ spm_write_vol(hdr, mean_vol.*sig_searchlight_max);
 decoding_maps = [];
 
 %specify results name
-res_name = 'manmade_natural';
+res_name = 'manmade_natural'; %change to 'basic-level' in case you want to run stats on the basic-level results
 fname = 'wdth_corr.nii'; %'s05wres_accuracy_minus_chance.nii' ;
 
 % load searchlight results
