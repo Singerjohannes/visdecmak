@@ -83,11 +83,11 @@ dth_corr = [];
 % load behavior 
 load(fullfile(behav_path,'RT_all_subjects_5_35_categorization.mat'), 'RTs')
 
-mean_RTs = nanmean(RTs,1);%.*[ones(1,30), ones(1,30)*-1]; 
+mean_RTs = nanmean(RTs,1);
 
 load(fullfile(behav_path,'RT_all_subjects_5_35_fixation.mat'), 'RTs')
 
-distraction_RTs = nanmean(RTs,1);%.*[ones(1,30), ones(1,30)*-1]; 
+distraction_RTs = nanmean(RTs,1);
 
 %specify results name
 res_name = 'manmade_natural';
@@ -104,7 +104,8 @@ for i_sub = 1:length(fmri_subs)
     
     for i = 1:length(results.mean_decision_values.output)
     
-    these_dec_vals = results.mean_decision_values.output{i}; %reshape(results.mean_decision_values.output{i},2,60);
+    these_dec_vals = results.mean_decision_values.output{i};
+    
     dec_vals(i_sub,i,:) = these_dec_vals; %store the decision values for later
     if length(these_dec_vals) > 60
         these_dec_vals = mean(reshape(these_dec_vals,length(these_dec_vals)/60,60))';
@@ -166,7 +167,6 @@ sig_dth_corr_distraction_PPA = permutation_1sample_alld(dth_corr_distraction(:,3
 
 roi_names = {'EVC'; 'LOC';'PPA'};
 
-%cmap = colormap('inferno');
 cmap = colormap('redblueTecplot');
 close all
 
@@ -210,7 +210,6 @@ for roi = 1:3
     % plot individual data points for each roi
     scatter(x(roi) * ones(length(decoding_roi), 1), decoding_roi(:,roi), 10, [0.6 0.6 0.6], 'filled','MarkerEdgeColor',[0.6 0.6 0.6]);
 end
-%legend({'Photos'; 'Drawings'; 'Sketches'} ,'Location','northeast')
 
 print(fullfile(out_dir, ['manmade_natural_decoding_ROI.svg']), ...
              '-dsvg', '-r600')
@@ -218,7 +217,7 @@ print(fullfile(out_dir, ['manmade_natural_decoding_ROI.svg']), ...
          
 %% plot distance-RT correlations
 
-roi_names = {'EVC'; 'LOC';'PPA'};%;'OPA';'RSC'};
+roi_names = {'EVC'; 'LOC';'PPA'};
 
 colorspace = linspace(20,size(cmap,1),length(roi_names)); 
 close all
@@ -233,7 +232,6 @@ figure
 h = bar(all_accs, 'grouped','FaceColor', 'flat');
 h.CData= [[0 0 0];cmap(256,:);cmap(200,:)];
 xticklabels([roi_names])
-%yticks([0:-0.02:-0.12])
 xlabel('ROI')
 ylabel('Pearson R')
 title('Distance To Hyperplane Correlation')

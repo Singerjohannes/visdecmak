@@ -121,7 +121,7 @@ end
 % load behavior
 load(fullfile('/Users/johannessinger/scratch/dfg_projekt/WP1/derived/', 'behav','mean_RTs_basic_categorization.mat'))
 
-mean_RTs = nanmean(mean_RTs,1);%.*[ones(1,30), ones(1,30)*-1]
+mean_RTs = nanmean(mean_RTs,1);
 
 % compute DTH correlation
 
@@ -130,7 +130,7 @@ for roi = 1:size(all_dec_vals,2)
     for i_sub = 1:size(all_dec_vals,1)
         
         these_dec_vals = dec_vals_mat(i_sub,:,roi);
-        sel_range =[1:60];% [1:40,51:60];
+        sel_range =[1:60];
         dth_corr(i_sub,roi) = corr(these_dec_vals(sel_range)',mean_RTs(sel_range)','Type',corr_type);
         dth_corr_manmade(i_sub,roi) = corr(these_dec_vals(1:30)',mean_RTs(1:30)','Type',corr_type);
         dth_corr_natural(i_sub,roi) = corr(these_dec_vals(31:end)',mean_RTs(31:end)','Type',corr_type);
@@ -147,7 +147,7 @@ end
 rng(96)
 
 % set stats defaults
-nperm = 100000;
+nperm = 10000;
 cluster_th = 0.001;
 significance_th = 0.05;
 tail = 'right';
@@ -175,7 +175,6 @@ sig_dth_corr_PPA = permutation_1sample_alld(dth_corr(:,3), nperm, cluster_th, si
 
 roi_names = {'EVC'; 'LOC';'PPA'};
 
-%cmap = colormap('inferno');
 cmap = colormap('redblueTecplot');
 close all
 
@@ -219,7 +218,6 @@ for roi = 1:3
     % plot individual data points for each roi
     scatter(x(roi) * ones(length(decoding_roi), 1), decoding_roi(:,roi), 10, [0.6 0.6 0.6], 'filled','MarkerEdgeColor',[0.6 0.6 0.6]);
 end
-%legend({'Photos'; 'Drawings'; 'Sketches'} ,'Location','northeast')
 
 print(fullfile(out_dir, ['basic_level_decoding_ROI.svg']), ...
     '-dsvg', '-r600')
