@@ -209,8 +209,6 @@ disp(check_filenames)
 
 %% shared variance for each model independently - ResNet18
 
-addpath('/Users/johannessinger/scratch/dfg_projekt/WP1/analysis/utils')
-
 disp('Running commonality analysis...')
 
 shared_var = [];
@@ -231,6 +229,7 @@ for j_roi = 1:3
     [~,~,~,~,r2_full] = regress(y, [ones(1,60)' xmodel xMRI]);
     
     % substract according to formula
+    shared_var_mri(sub,j_roi) = r2_mri(1);
     shared_var(sub,j_roi,model_idx,1) = r2_mri(1)+r2_model(1)-r2_full(1);
 end
 end 
@@ -238,8 +237,6 @@ end
 disp('done.')
 
 %% shared variance for each model independently - ResNet50
-
-addpath('/Users/johannessinger/scratch/dfg_projekt/WP1/analysis/utils')
 
 disp('Running commonality analysis...')
 
@@ -268,8 +265,6 @@ disp('done.')
 
 %% shared variance for each model independently - AlexNet
 
-addpath('/Users/johannessinger/scratch/dfg_projekt/WP1/analysis/utils')
-
 disp('Running commonality analysis...')
 
 for sub = 1:size(dec_vals_mat,1)
@@ -294,8 +289,6 @@ end
 disp('done.')
 
 %% shared variance for each model independently - DenseNet
-
-addpath('/Users/johannessinger/scratch/dfg_projekt/WP1/analysis/utils')
 
 disp('Running commonality analysis...')
 
@@ -419,7 +412,7 @@ ylim([-1 4.5])
 xlim([1 6])
 xticks([1 3.5 6])
 xticklabels({'Early';'Intermediate';'High'})
-legend(this_line,'ResNet18','ResNet50','AlexNet', 'DenseNet','Brain-behavior')
+%legend(this_line,'ResNet18','ResNet50','AlexNet', 'DenseNet','Brain-behavior')
 title('EVC')
 ylabel('Shared Variance (%)')
 xlabel('Model layer')
@@ -481,7 +474,7 @@ ylim([-1  4.5])
 xlim([1 6])
 xticks([1 3.5 6])
 xticklabels({'Early';'Intermediate';'High'})
-legend(this_line,'ResNet18','ResNet50','AlexNet', 'DenseNet','Brain-behavior')
+%legend(this_line,'ResNet18','ResNet50','AlexNet', 'DenseNet','Brain-behavior')
 title('LOC')
 ylabel('Shared Variance (%)')
 xlabel('Model layer')

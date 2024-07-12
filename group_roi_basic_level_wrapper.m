@@ -119,7 +119,7 @@ for i_sub = 1:size(all_dec_vals,1)
 end
 
 % load behavior
-load(fullfile('/Users/johannessinger/scratch/dfg_projekt/WP1/derived/', 'behav','mean_RTs_basic_categorization.mat'))
+load(fullfile(behav_path,'mean_RTs_basic_categorization.mat'))
 
 mean_RTs = nanmean(mean_RTs,1);
 

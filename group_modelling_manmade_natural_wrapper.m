@@ -178,8 +178,6 @@ disp(check_filenames)
 
 %% shared variance for each model independently - ResNet18
 
-addpath('/Users/johannessinger/scratch/dfg_projekt/WP1/analysis/utils')
-
 disp('Running commonality analysis...')
 
 shared_var = [];
@@ -201,6 +199,7 @@ for sub = 1:size(dec_vals,1)
             
             %substract r2 values according to formula
             shared_var(sub,j_roi,model_idx,1) = r2_mri(1)+r2_model(1)-r2_full(1);
+            shared_var_mri(sub,j_roi) = r2_mri(1);
             
         end
     end
@@ -210,10 +209,7 @@ disp('done.')
 
 %% shared variance for each model independently - ResNet50
 
-addpath('/Users/johannessinger/scratch/dfg_projekt/WP1/analysis/utils')
-
 disp('Running commonality analysis...')
-
 
 for sub = 1:size(dec_vals,1)
     for j_roi = 1:3
@@ -240,8 +236,6 @@ disp('done.')
 
 %% shared variance for each model independently - AlexNet
 
-addpath('/Users/johannessinger/scratch/dfg_projekt/WP1/analysis/utils')
-
 disp('Running commonality analysis...')
 
 for sub = 1:size(dec_vals,1)
@@ -267,8 +261,6 @@ disp('done.')
 
 %% shared variance for each model independently - DenseNet
 
-addpath('/Users/johannessinger/scratch/dfg_projekt/WP1/analysis/utils')
-
 disp('Running commonality analysis...')
 
 for sub = 1:size(dec_vals,1)
@@ -285,7 +277,6 @@ for sub = 1:size(dec_vals,1)
             [~,~,~,~,r2_model] = regress(y,[ones(1,60)' xmodel]);
             [~,~,~,~,r2_full] = regress(y, [ones(1,60)' xmodel xMRI]);
             
-            r_vals_model(model_idx) = corr(xmodel,y);
             shared_var(sub,j_roi,model_idx,4) = r2_mri(1)+r2_model(1)-r2_full(1);
             % end
         end
@@ -357,7 +348,7 @@ options.color_area = cmap(ceil(200),:);
 options.color_line = cmap(ceil(200),:);
 this_line(3) = plot_areaerrorbar(squeeze(shared_var(:,1,:,3))*100,options);
 options.color_area = cmap(ceil(20),:);
-options.color_line = cmap(ceil(20),:)
+options.color_line = cmap(ceil(20),:);
 this_line(4) = plot_areaerrorbar(squeeze(shared_var(:,1,:,4))*100,options);
 for model = 1:size(shared_var,4)
     % plot stats
@@ -391,7 +382,7 @@ ylim([-0.5 6])
 xlim([1 6])
 xticks([1 3.5 6])
 xticklabels({'Early';'Intermediate';'High'})
-legend(this_line,'ResNet18','ResNet50','AlexNet', 'DenseNet','Brain-behavior')
+%legend(this_line,'ResNet18','ResNet50','AlexNet', 'DenseNet','Brain-behavior')
 title('EVC')
 ylabel('Shared Variance (%)')
 xlabel('Model layer')
@@ -414,6 +405,7 @@ hold on
 options.color_area = cmap(ceil(256),:);
 options.color_line = cmap(ceil(256),:);
 this_line(2) = plot_areaerrorbar(squeeze(shared_var(:,2,:,2))*100,options);
+options.color_area = cmap(ceil(200),:);
 options.color_line = cmap(ceil(200),:);
 this_line(3) = plot_areaerrorbar(squeeze(shared_var(:,2,:,3))*100,options);
 options.color_area = cmap(ceil(20),:);
@@ -451,7 +443,7 @@ hold off
 ylim([-0.5 6])
 xticks([1 3.5 6])
 xticklabels({'Early';'Intermediate';'High'})
-legend(this_line,'ResNet18','ResNet50','AlexNet', 'DenseNet')
+%legend(this_line,'ResNet18','ResNet50','AlexNet', 'DenseNet')
 title('LOC')
 ylabel('Shared Variance (%)')
 xlabel('Model layer')
