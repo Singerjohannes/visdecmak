@@ -29,4 +29,4 @@ If you have not computed the first-level results with the steps described above 
 After you have downloaded and unzipped the files you can use group_roi_basic_level_wrapper.m, group_roi_manmade_natural_wrapper.m, group_modelling_basic_level_wrapper.m, group_modelling_manmade_natural_wrapper.m, group_searchlight_wrapper.m, and group_behavioral_wrapper.m to compute the group-level statistics for all the analyses in the paper. 
 
 Please note that group_searchlight_wrapper.m will require big amounts of memory (up to 80GB RAM) which might preclude you from running this script on your local PC. 
-In this case, you can download the precomputed group-level statistics from the group-level results component on OSF. 
+In this case, you can download the precomputed group-level statistics from the group-level results component on OSF (https://osf.io/g5bhf/). 
