@@ -1,6 +1,6 @@
 # visdecmak
 This repository containes code for the paper "Identifying and characterizing scene
-representations relevant for categorization behavior” (Link to preprint: https://www.biorxiv.org/content/10.1101/2023.08.17.553708v1). With the code contained in this repository and the data provided via OSF (https://osf.io/y8tx2/) all of the results in the paper can be reproduced. 
+representations relevant for categorization behavior” (Link to preprint: https://www.biorxiv.org/content/10.1101/2023.08.17.553708v2). With the code contained in this repository and the data provided via OSF (https://osf.io/y8tx2/) all of the results in the paper can be reproduced. 
 
 ## Requirements: 
 
