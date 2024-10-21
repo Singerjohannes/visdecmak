@@ -121,6 +121,7 @@ end
 % load behavior
 load(fullfile(behav_path,'mean_RTs_basic_categorization.mat'))
 
+RTs_sub = mean_RTs;
 mean_RTs = nanmean(mean_RTs,1);
 
 % compute DTH correlation
@@ -141,6 +142,48 @@ for roi = 1:size(all_dec_vals,2)
         end
     end
 end
+%% compute joint reliability based on Ritchie,2019
+
+% calculate the split-half reliability with random splits for 10000 times 
+perm = 10000;
+n_subs = size(dec_vals_mat,1); 
+
+for roi = 1:size(dec_vals_mat,3)
+for i = 1:perm 
+    
+    % first get a random vector from 1 to n_subs 
+    rand_vec = randperm(n_subs); 
+    % split data in two halfs
+    dec_vals1 = squeeze(mean(dec_vals_mat(rand_vec(1:ceil(n_subs/2)),:,roi),1))';
+    dec_vals2 = squeeze(mean(dec_vals_mat(rand_vec(ceil(n_subs/2)+1:end),:,roi),1))';
+    % correlate the two halfs
+    thisr = corr(dec_vals1,dec_vals2,'type','pearson');
+    % apply spearman brown formula
+    splithalf(roi,i) = (2 * thisr) / (1 + thisr);
+end 
+end  
+
+n_subs = size(RTs_sub,1); 
+
+for i = 1:perm 
+    
+    % first get a random vector from 1 to n_subs 
+    rand_vec = randperm(n_subs); 
+    % split data in two halfs
+    dec_vals1 = squeeze(nanmean(RTs_sub(rand_vec(1:ceil(n_subs/2)),:)));
+    dec_vals2 = squeeze(nanmean(RTs_sub(rand_vec(ceil(n_subs/2)+1:end),:)));
+    % correlate the two halfs
+    thisr = corr(dec_vals1',dec_vals2','type','pearson');
+    % apply spearman brown formula
+    splithalf_RTs(i) = (2 * thisr) / (1 + thisr);
+end
+
+% then get square root of the product of the split-half reliabliaities
+for roi = 1:size(dec_vals_mat,3)
+
+combined_rel(roi) = -sqrt(mean(splithalf(roi,:))*mean(splithalf_RTs)); % invert for visualization
+end 
+
 %% compute statistics
 
 % set rng
@@ -264,14 +307,19 @@ end
 
 % loop through each roi
 for roi = 1:3
-    if adj_p_dth_corr(roi) < 0.05
-        % Add star for individually significant values
-        text(roi, all_accs(roi)-decoding_se(roi)-0.03, '*','Color','black', 'FontSize', 30, 'HorizontalAlignment', 'center');
-    end
     % plot individual data points for each roi
     scatter(x(roi) * ones(length(dth_corr), 1), dth_corr(:,roi), 10, [0.6 0.6 0.6], 'filled','MarkerEdgeColor',[0.6 0.6 0.6]);
+    if adj_p_dth_corr(roi) < 0.05
+        % Add star for individually significant values
+        text(roi, all_accs(roi)-decoding_se(roi)-0.05, '*','Color','black', 'FontSize', 30, 'HorizontalAlignment', 'center');
+    end
 end
 
-print(fullfile(out_dir,['dth_corr_basic_level_ROI.svg']), ...
+for i = 1:length(roi_names)
+    
+    plot([x(i)-0.2 x(i)+0.2], [combined_rel(i) combined_rel(i)],'Color',h.CData(i,:) )
+end 
+
+print(fullfile(out_dir,['dth_accs_corr_basic_level_ROI.svg']), ...
     '-dsvg', '-r600')
 

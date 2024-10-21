@@ -76,7 +76,7 @@ for sub_idx = 1:length(subs)
     if strcmpi(cfg.analysis, 'searchlight')
         cfg.files.mask = {fullfile(beta_dir,'mask.nii')};
     elseif strcmpi(cfg.analysis, 'roi')
-        cfg.files.mask = {fullfile(roi_dir, 'evcmask.nii');fullfile(roi_dir, 'loc_mask.nii');fullfile(roi_dir, 'PPA_mask.nii')};
+        cfg.files.mask = {fullfile(roi_dir, 'evcmask.nii');fullfile(roi_dir, 'loc_mask.nii');fullfile(roi_dir, 'PPA_mask.nii');fullfile(roi_dir, 'RSC_mask.nii');fullfile(roi_dir, 'OPA_mask.nii')};
     end
     
     decoding_nobetas_splithalf(condition_names,avg_size,beta_dir,beta_avg_dir,out_dir, cfg);
@@ -122,7 +122,7 @@ for sub_idx = 1:length(subs)
     rng(sub_idx);
     
     cfg = [];
-    cfg.analysis = 'searchlight';
+    cfg.analysis = 'roi';
     cfg.n_perm = 100; %how many times should the split-half averaging and decoding be repeated
     avg_size = 2; % how many betas to average into one beta
     condition_names = cell(1,60);
@@ -140,7 +140,7 @@ for sub_idx = 1:length(subs)
     if strcmpi(cfg.analysis, 'searchlight')
         cfg.files.mask = {fullfile(beta_dir,'mask.nii')};
     elseif strcmpi(cfg.analysis, 'roi')
-        cfg.files.mask = {fullfile(roi_dir, 'evcmask.nii');fullfile(roi_dir, 'loc_mask.nii');fullfile(roi_dir, 'PPA_mask.nii')};
+        cfg.files.mask = {fullfile(roi_dir, 'evcmask.nii');fullfile(roi_dir, 'loc_mask.nii');fullfile(roi_dir, 'PPA_mask.nii');fullfile(roi_dir, 'RSC_mask.nii');fullfile(roi_dir, 'OPA_mask.nii')};
     end
     
     % run the decoding for each basic-level category separately

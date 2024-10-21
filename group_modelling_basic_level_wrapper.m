@@ -123,7 +123,7 @@ mean_RTs = nanmean(mean_RTs,1);%.*[ones(1,30), ones(1,30)*-1]
 % load ResNet18 distances 
 dist_files = dir(fullfile(modelling_path,'*.mat'));
 dist_filenames = {dist_files.name}'; 
-filenames_info = regexpi(dist_filenames,'^resnet18_places.*distances.*'); 
+filenames_info = regexpi(dist_filenames,'^ResNet18_places.*distances.*'); 
 
 resnet18_distances = [];
 for idx = 1:length(dist_filenames)
@@ -144,7 +144,7 @@ disp(check_filenames)
 % load ResNet50 distances 
 dist_files = dir(fullfile(modelling_path,'*.mat'));
 dist_filenames = {dist_files.name}'; 
-filenames_info = regexpi(dist_filenames,'^resnet50_places.*distances.*'); 
+filenames_info = regexpi(dist_filenames,'^ResNet50_places.*distances.*'); 
 
 resnet50_distances = [];
 for idx = 1:length(dist_filenames)
@@ -165,7 +165,7 @@ disp(check_filenames)
 % load AlexNet distances 
 dist_files = dir(fullfile(modelling_path,'*.mat'));
 dist_filenames = {dist_files.name}'; 
-filenames_info = regexpi(dist_filenames,'^alexnet_places.*distances.*'); 
+filenames_info = regexpi(dist_filenames,'^AlexNet_places.*distances.*'); 
 
 alexnet_distances = [];
 for idx = 1:length(dist_filenames)
@@ -356,9 +356,8 @@ end
 
 %% plot with error bars 
 
-
-cmap = colormap('redbluetecplot');
-cmap_idx = [256,200,20];
+cmap = getPyPlot_cMap('tab20c',[], [], '/opt/miniconda3/bin/python');
+cmap_idx = [1,27,52,78];%[45,78,100,126]
 clear this_line
 fig = figure;
 options = [];
@@ -369,38 +368,36 @@ options.color_area = 'black';%[128 193 219]./255;    % Blue theme
 options.color_line = [17 17 17]./255;
 options.alpha      = 0.5;
 options.line_width = 3;
-this_line(1) = plot_areaerrorbar(squeeze(shared_var(:,1,:,1))*100,options);
+for idx = 1:length(cmap_idx)
+options.color_area = cmap(ceil(cmap_idx(idx)),:);
+options.color_line = cmap(ceil(cmap_idx(idx)),:);
+this_line(idx) = plot_areaerrorbar(squeeze(shared_var(:,1,:,idx))*100,options);
 hold on
-options.color_area = cmap(ceil(256),:);
-options.color_line = cmap(ceil(256),:);
-this_line(2) = plot_areaerrorbar(squeeze(shared_var(:,1,:,2))*100,options);
-options.color_area = cmap(ceil(200),:);
-options.color_line = cmap(ceil(200),:);
-this_line(3) = plot_areaerrorbar(squeeze(shared_var(:,1,:,3))*100,options);
-options.color_area = cmap(ceil(20),:);
-options.color_line = cmap(ceil(20),:);
-this_line(4) = plot_areaerrorbar(squeeze(shared_var(:,1,:,4))*100,options);
+end 
 for model = 1:size(shared_var,4)
     % plot stats 
     this_sig = adj_p_shared_var_diff(1,:,model);
     this_sig(this_sig>0.05) = NaN;
     this_sig(this_sig<0.05) = 1; 
-    if model == 1 
-        plot(options.x_axis,this_sig*-0.12*model-0.5,'.','Color','black','MarkerSize',15);
-    elseif model >1
-        plot(options.x_axis,this_sig*-0.12*model-0.5,'.','Color',cmap(cmap_idx(model-1),:),'MarkerSize',15);
-    end 
+    % choose color and plot
+    color = cmap(cmap_idx(model),:);
+    plot(options.x_axis,this_sig*-0.12*model-1.5,'.','Color',color,'MarkerSize',15);
+    
+    % plot zero line 
+    plot(options.x_axis,zeros(length(options.x_axis)),'--','Color',[0.5 0.5 0.5]);
+
+    %end 
     % plot peak CI 
     x = boot_shared_var(1,model).peak.confidence95(1);
     y = 4.5-0.2*model;
     err_start = 0;
     err_end = abs(boot_shared_var(1,model).peak.confidence95(2)-boot_shared_var(1,model).peak.confidence95(1));
-    if model ==1, color = 'black'; elseif model >1 color = cmap(cmap_idx(model-1),:);end 
+
     errorbar(x, y, err_start, err_end, 'horizontal','Color',color, 'LineStyle', 'none', 'Marker', 'none', 'LineWidth', 3);
 
     % add observed peak value as a dot
     obs_peak_val = boot_shared_var(1,model).peak.orig;
-    plot(obs_peak_val, y, 'o', 'MarkerFaceColor', color, 'MarkerEdgeColor', 'none', 'MarkerSize', 8)
+    plot(obs_peak_val, y, 'o', 'MarkerFaceColor' , color, 'MarkerEdgeColor', 'none', 'MarkerSize', 8)
 end 
 x = 1:6;
 y1 = ones(1,6)*(mean(shared_var_mri(:,1)) - std(shared_var_mri(:,1)) / sqrt(size(shared_var_mri,1))) * 100;
@@ -408,17 +405,18 @@ y2 = ones(1,6)*(mean(shared_var_mri(:,1)) + std(shared_var_mri(:,1)) / sqrt(size
 % Filling the area between y1 and y2
 patch([x, fliplr(x)], [y1, fliplr(y2)],[0.5 0.5 0.5], 'EdgeColor', 'none', 'FaceAlpha', 0.3)
 this_line(end+1) = plot(x,ones(1,6)*mean(shared_var_mri(:,1))*100,'Color',[0.5 0.5 0.5])
-ylim([-1 4.5])
+ylim([-2 4.5])
 xlim([1 6])
 xticks([1 3.5 6])
 xticklabels({'Early';'Intermediate';'High'})
-%legend(this_line,'ResNet18','ResNet50','AlexNet', 'DenseNet','Brain-behavior')
+% legend(this_line,'ResNet18','ResNet50','AlexNet', 'DenseNet','Brain-behavior')
 title('EVC')
 ylabel('Shared Variance (%)')
 xlabel('Model layer')
 
 print(fullfile(out_dir, ['dth_shared_variance_basic_level_EVC.svg']), ...
              '-dsvg', '-r600')
+
 
 %% plot for LOC
 fig = figure;
@@ -431,33 +429,30 @@ options.color_area = 'black';
 options.color_line = [17 17 17]./255;
 options.alpha      = 0.5;
 options.line_width = 3;
-this_line(1) = plot_areaerrorbar(squeeze(shared_var(:,2,:,1))*100,options);
+for idx = 1:length(cmap_idx)
+options.color_area = cmap(ceil(cmap_idx(idx)),:);
+options.color_line = cmap(ceil(cmap_idx(idx)),:);
+this_line(idx) = plot_areaerrorbar(squeeze(shared_var(:,2,:,idx))*100,options);
 hold on
-options.color_area = cmap(ceil(256),:);
-options.color_line = cmap(ceil(256),:);
-this_line(2) = plot_areaerrorbar(squeeze(shared_var(:,2,:,2))*100,options);
-options.color_area = cmap(ceil(200),:);
-options.color_line = cmap(ceil(200),:);
-this_line(3) = plot_areaerrorbar(squeeze(shared_var(:,2,:,3))*100,options);
-options.color_area = cmap(ceil(20),:);
-options.color_line = cmap(ceil(20),:);
-this_line(4) = plot_areaerrorbar(squeeze(shared_var(:,2,:,4))*100,options);
+end 
 for model = 1:size(shared_var,4)
     % plot stats 
     this_sig = adj_p_shared_var_diff(2,:,model);
     this_sig(this_sig>0.05) = NaN;
     this_sig(this_sig<0.05) = 1; 
-    if model == 1 
-        plot(options.x_axis,this_sig*-0.12*model-0.5,'.','Color','black','MarkerSize',15);
-    elseif model >1
-        plot(options.x_axis,this_sig*-0.12*model-0.5,'.','Color',cmap(cmap_idx(model-1),:),'MarkerSize',15);
-    end 
+    % choose color and plot 
+    color = cmap(cmap_idx(model),:);
+    plot(options.x_axis,this_sig*-0.12*model-1.5,'.','Color',color,'MarkerSize',15);
+    
+    % plot zero line 
+    plot(options.x_axis,zeros(length(options.x_axis)),'--','Color',[0.5 0.5 0.5]);
+
     % plot peak CI 
     x = boot_shared_var(1,model).peak.confidence95(1);
     y = 4-0.2*model;
     err_start = 0;
     err_end = abs(boot_shared_var(2,model).peak.confidence95(2)-boot_shared_var(2,model).peak.confidence95(1));
-    if model ==1, color = 'black'; elseif model >1 color = cmap(cmap_idx(model-1),:);end 
+%     if model ==1, color = 'black'; elseif model >1 color = cmap(cmap_idx(model-1),:);end 
     errorbar(x, y, err_start, err_end, 'horizontal','Color',color, 'LineStyle', 'none', 'Marker', 'none', 'LineWidth', 3);
 
     % add observed peak value as a dot
@@ -470,7 +465,7 @@ y2 = ones(1,6)*(mean(shared_var_mri(:,2)) + std(shared_var_mri(:,2)) / sqrt(size
 % Filling the area between y1 and y2
 patch([x, fliplr(x)], [y1, fliplr(y2)],[0.5 0.5 0.5], 'EdgeColor', 'none', 'FaceAlpha', 0.3)
 this_line(end+1) = plot(x,ones(1,6)*mean(shared_var_mri(:,2))*100,'Color',[0.5 0.5 0.5])
-ylim([-1  4.5])
+ylim([-2  4.5])
 xlim([1 6])
 xticks([1 3.5 6])
 xticklabels({'Early';'Intermediate';'High'})

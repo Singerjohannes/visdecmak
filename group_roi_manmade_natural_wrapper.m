@@ -85,9 +85,13 @@ load(fullfile(behav_path,'RT_all_subjects_5_35_categorization.mat'), 'RTs')
 
 mean_RTs = nanmean(RTs,1);
 
+RTs_sub = RTs;
+
 load(fullfile(behav_path,'RT_all_subjects_5_35_fixation.mat'), 'RTs')
 
 distraction_RTs = nanmean(RTs,1);
+
+RTs_sub_distraction = RTs; 
 
 %specify results name
 res_name = 'manmade_natural';
@@ -125,6 +129,55 @@ dth_corr_distraction(find(dth_corr_distraction(:,1)==0),:,:) = [];
 
 fprintf('\nMean distance to hyperplane correlation over all subjects EVC: %2f, LOC: %2f, PPA: %2f\n',mean(dth_corr)); 
 fprintf('\nMean distance to hyperplane correlation for distraction over all subjects EVC: %2f, LOC: %2f, PPA: %2f\n', mean(dth_corr_distraction)); 
+
+%% compute joint reliability based on Ritchie,2019
+
+% calculate the split-half reliability with random splits for 10000 times 
+perm = 10000;
+n_subs = size(dec_vals,1); 
+
+% for neural data
+for roi = 1:size(dec_vals,2)
+for i = 1:perm 
+    
+    % first get a random vector from 1 to n_subs 
+    rand_vec = randperm(n_subs); 
+    % split data in two halfs 
+    dec_vals1 = squeeze(mean(dec_vals(rand_vec(1:ceil(n_subs/2)),roi,:),1));
+    dec_vals2 = squeeze(mean(dec_vals(rand_vec(ceil(n_subs/2)+1:end),roi,:),1));
+    % get correlation between halfs
+    thisr = corr(dec_vals1,dec_vals2,'type','pearson');
+    % apply spearman brown formula
+    splithalf(roi,i) = (2 * thisr) / (1 + thisr);
+end 
+end  
+
+n_subs = size(RTs_sub,1); 
+% and for behavioral data
+for i = 1:perm 
+    
+    % first get a random vector from 1 to n_subs 
+    rand_vec = randperm(n_subs); 
+    % split data in two halfs
+    dec_vals1 = squeeze(nanmean(RTs_sub(rand_vec(1:ceil(n_subs/2)),:)));
+    dec_vals2 = squeeze(nanmean(RTs_sub(rand_vec(ceil(n_subs/2)+1:end),:)));
+    % compute correlation between halfs
+    thisr = corr(dec_vals1',dec_vals2','type','pearson');
+    % apply spearman brown formula 
+    splithalf_RTs(i) = (2 * thisr) / (1 + thisr);
+    % same for distraction RTs
+    dec_vals1 = squeeze(nanmean(RTs_sub_distraction(rand_vec(1:ceil(n_subs/2)),:)));
+    dec_vals2 = squeeze(nanmean(RTs_sub_distraction(rand_vec(ceil(n_subs/2)+1:end),:)));
+    thisr = corr(dec_vals1',dec_vals2','type','pearson');
+    splithalf_RTs_distraction(i) = (2 * thisr) / (1 + thisr);
+end 
+
+% then get square root of the product of the split-half reliabliaities 
+for roi = 1:size(dec_vals,2)
+
+combined_rel(roi) = -sqrt(mean(splithalf(roi,:))*mean(splithalf_RTs)); % invert the sqrt only for visualization
+combined_rel_distraction(roi) = -sqrt(mean(splithalf(roi,:))*mean(splithalf_RTs_distraction));
+end 
 
 %% compute statistics
 
@@ -263,6 +316,11 @@ for roi = 1:3
     scatter(x(roi) * ones(length(dth_corr), 1), dth_corr(:,roi), 10, [0.6 0.6 0.6], 'filled','MarkerEdgeColor',[0.6 0.6 0.6]);
 end
 
+for i = 1:length(roi_names)
+    
+    plot([x(i)-0.2 x(i)+0.2], [combined_rel(i) combined_rel(i)],'Color',h.CData(i,:) )
+end 
+
 print(fullfile(out_dir,['dth_corr_ROI.svg']), ...
              '-dsvg', '-r600')
  
@@ -300,7 +358,7 @@ end
 
 
 % loop through each roi
-for roi = 1:3
+for roi = 1:length(roi_names)
     if adj_p_dth_corr_distraction(roi) < 0.05
         % Add star for individually significant values
         text(roi, all_accs(roi)+decoding_se(roi)+0.01, '*','Color','black', 'FontSize', 30, 'HorizontalAlignment', 'center');
@@ -308,6 +366,11 @@ for roi = 1:3
     % plot individual data points for each roi
     scatter(x(roi) * ones(length(dth_corr), 1), dth_corr_distraction(:,roi), 10, [0.6 0.6 0.6], 'filled','MarkerEdgeColor',[0.6 0.6 0.6]);
 end
+
+for i = 1:length(roi_names)
+    
+    plot([x(i)-0.2 x(i)+0.2], [combined_rel_distraction(i)*-1 combined_rel_distraction(i)*-1],'Color',h.CData(i,:) )
+end 
 
 print(fullfile(out_dir,['dth_corr_distraction_ROI.svg']), ...
              '-dsvg', '-r600')
