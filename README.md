@@ -1,6 +1,6 @@
 # visdecmak
 This repository containes code for the paper "Identifying and characterizing scene
-representations relevant for categorization behavior” (Link to preprint: https://www.biorxiv.org/content/10.1101/2023.08.17.553708v2). With the code contained in this repository and the data provided via OSF (https://osf.io/y8tx2/) all of the results in the paper can be reproduced. 
+representations relevant for categorization behavior” [Link to preprint](https://www.biorxiv.org/content/10.1101/2023.08.17.553708v2). With the code contained in this repository and the data provided via OSF (https://osf.io/y8tx2/) all of the results in the paper can be reproduced. 
 
 ## Requirements: 
 
@@ -30,3 +30,9 @@ After you have downloaded and unzipped the files you can use group_roi_basic_lev
 
 Please note that group_searchlight_wrapper.m will require big amounts of memory (up to 80GB RAM) which might preclude you from running this script on your local PC. 
 In this case, you can download the precomputed group-level statistics from the group-level results component on OSF (https://osf.io/g5bhf/). 
+
+## Credits
+
+Some utility functions are adapted from external sources:
+- `plot_shaded_errorbar`: [Matlab Central](https://de.mathworks.com/matlabcentral/fileexchange/58262-shaded-area-error-bar-plot)
+- `PyColormap4Matlab`: [Matlab Central](https://de.mathworks.com/matlabcentral/fileexchange/68239-pycolormap4matlab)
